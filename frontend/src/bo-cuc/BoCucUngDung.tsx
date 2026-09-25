@@ -9,6 +9,7 @@ export interface MucDieuHuong {
   to: string;
   label: string;
   icon: LucideIcon;
+  badge?: number;
 }
 
 interface BoCucUngDungProps {
@@ -19,13 +20,13 @@ interface BoCucUngDungProps {
 }
 
 export function BoCucUngDung({ title, subtitle, nav, brandSub }: BoCucUngDungProps) {
-  const { user, logout } = dungXacThuc();
+  const { account, logout } = dungXacThuc();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  if (!user) return null;
+  if (!account) return null;
 
-  const initials = user.name
+  const initials = account.name
     .split(' ')
     .slice(-2)
     .map((p) => p[0])
@@ -50,9 +51,24 @@ export function BoCucUngDung({ title, subtitle, nav, brandSub }: BoCucUngDungPro
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               onClick={() => setOpen(false)}
               end={item.to.split('/').length <= 2}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
             >
-              <item.icon size={18} />
-              {item.label}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <item.icon size={18} />
+                {item.label}
+              </div>
+              {item.badge ? (
+                <span style={{
+                  background: 'var(--danger)',
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                }}>
+                  {item.badge}
+                </span>
+              ) : null}
             </NavLink>
           ))}
         </nav>
@@ -60,8 +76,8 @@ export function BoCucUngDung({ title, subtitle, nav, brandSub }: BoCucUngDungPro
           <div className="user-chip">
             <div className="avatar">{initials}</div>
             <div>
-              <strong>{user.name}</strong>
-              <small>{roleLabel[user.role]}</small>
+              <strong>{account.name}</strong>
+              <small>{roleLabel[account.role]}</small>
             </div>
           </div>
           <button

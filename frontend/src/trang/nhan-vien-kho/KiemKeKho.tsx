@@ -1,21 +1,30 @@
 import { useState } from 'react';
 import { areas as seed } from '../../du-lieu/duLieuMau';
 import type { Area, AreaStatus, InspectionItem } from '../../kieu';
-import { areaStatusLabel, areaTypeLabel } from '../../thu-vien/dinhDang';
+import { areaStatusLabel } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiKhuVuc } from '../../thanh-phan/NhanTrangThai';
 import { BanDoKho } from '../../thanh-phan/BanDoKho';
 
 export function KiemKeKho() {
-  const [areas] = useState<Area[]>(seed);
-  const [items, setItems] = useState<InspectionItem[]>(
-    seed.map((a) => ({
+  const [areas, setAreas] = useState<Area[]>(() => {
+    const raw = localStorage.getItem('mock_areas');
+    return raw ? JSON.parse(raw) : seed;
+  });
+  const [items, setItems] = useState<InspectionItem[]>(() => {
+    const raw = localStorage.getItem('mock_areas');
+    const sourceAreas: Area[] = raw ? JSON.parse(raw) : seed;
+    return sourceAreas.map((a) => ({
       areaId: a.id,
       systemStatus: a.status,
       actualStatus: a.status,
       match: true,
-    })),
-  );
-  const [selectedId, setSelectedId] = useState<string | null>(seed[0]?.id ?? null);
+    }));
+  });
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    const raw = localStorage.getItem('mock_areas');
+    const sourceAreas: Area[] = raw ? JSON.parse(raw) : seed;
+    return sourceAreas[0]?.id ?? null;
+  });
   const [confirmed, setConfirmed] = useState(false);
 
   const statusById = Object.fromEntries(items.map((i) => [i.areaId, i.actualStatus])) as Record<
@@ -85,17 +94,14 @@ export function KiemKeKho() {
                     <label>Mã khu vực</label>
                     <strong>{selectedArea.code}</strong>
                   </div>
-                  <div className="detail-item">
-                    <label>Loại</label>
-                    <strong>{areaTypeLabel[selectedArea.type]}</strong>
-                  </div>
+
                   <div className="detail-item">
                     <label>Tên</label>
                     <strong>{selectedArea.name}</strong>
                   </div>
                   <div className="detail-item">
                     <label>Diện tích</label>
-                    <strong>{selectedArea.areaM2} m²</strong>
+                    <strong>{selectedArea.capacity} {selectedArea.rentalUnit}</strong>
                   </div>
                   <div className="detail-item">
                     <label>Trạng thái hệ thống</label>
@@ -138,10 +144,20 @@ export function KiemKeKho() {
           <h2>Bảng đối chiếu kiểm kê</h2>
           <button
             className="btn btn-primary btn-sm"
-            onClick={() => setConfirmed(true)}
+            onClick={() => {
+              const updatedAreas = areas.map(a => {
+                const it = items.find(item => item.areaId === a.id);
+                return it ? { ...a, status: it.actualStatus } : a;
+              });
+              setAreas(updatedAreas);
+              localStorage.setItem('mock_areas', JSON.stringify(updatedAreas));
+              window.dispatchEvent(new Event('storage'));
+              setConfirmed(true);
+              alert('✅ Đã xác nhận kiểm kê và cập nhật trạng thái kho vào hệ thống thành công!');
+            }}
             disabled={confirmed}
           >
-            {confirmed ? 'Đã xác nhận kiểm kê' : 'Xác nhận kiểm kê'}
+            {confirmed ? 'Đã xác nhận kiểm kê' : 'Xác nhận kiểm kê & Cập nhật hệ thống'}
           </button>
         </div>
         <div className="table-wrap">

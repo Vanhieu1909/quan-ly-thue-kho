@@ -2,31 +2,33 @@ import { dungXacThuc } from '../../boi-canh/BoiCanhXacThuc';
 import { roleLabel } from '../../thu-vien/dinhDang';
 
 export function TaiKhoan() {
-  const { user } = dungXacThuc();
-  if (!user) return null;
+  const { account } = dungXacThuc();
+  if (!account) return null;
 
   return (
-    <div className="stack" style={{ maxWidth: 640 }}>
-      <div className="panel">
+    <div className="stack">
+      <div className="panel" style={{ maxWidth: 600 }}>
         <div className="panel-hd">
-          <h2>Thông tin tài khoản</h2>
+          <h2>Hồ sơ của tôi</h2>
         </div>
-        <div className="panel-bd detail-grid">
-          <div className="detail-item">
-            <label>Họ tên</label>
-            <strong>{user.name}</strong>
-          </div>
-          <div className="detail-item">
-            <label>Vai trò</label>
-            <strong>{roleLabel[user.role]}</strong>
-          </div>
-          <div className="detail-item">
-            <label>Tên đăng nhập</label>
-            <strong>{user.username}</strong>
-          </div>
-          <div className="detail-item">
-            <label>Email</label>
-            <strong>{user.email || '—'}</strong>
+        <div className="panel-bd">
+          <div className="detail-grid">
+            <div className="detail-item">
+              <label>Họ và tên</label>
+              <strong>{account.name}</strong>
+            </div>
+            <div className="detail-item">
+              <label>Vai trò</label>
+              <strong>{roleLabel[account.role]}</strong>
+            </div>
+            <div className="detail-item">
+              <label>Tên đăng nhập / SĐT</label>
+              <strong>{account.username}</strong>
+            </div>
+            <div className="detail-item">
+              <label>Email</label>
+              <strong>{account.email || '—'}</strong>
+            </div>
           </div>
         </div>
       </div>

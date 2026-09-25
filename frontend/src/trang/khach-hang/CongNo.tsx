@@ -1,19 +1,38 @@
 import { Link } from 'react-router-dom';
-import { contracts, invoices } from '../../du-lieu/duLieuMau';
+import { contracts as seedContracts, invoices as seedInvoices, billingCycles as seedBillingCycles } from '../../du-lieu/duLieuMau';
 import { dungXacThuc } from '../../boi-canh/BoiCanhXacThuc';
 import { formatMoney } from '../../thu-vien/dinhDang';
+import { useState, useEffect } from 'react';
 
 export function CongNo() {
-  const { user } = dungXacThuc();
-  const customerId = user?.customerId || 'c1';
+  const { account } = dungXacThuc();
+  const customerId = account?.customerId;
+  
+  const [contracts, setContracts] = useState(seedContracts);
+  const [invoices, setInvoices] = useState(seedInvoices);
+  const [billingCycles, setBillingCycles] = useState(seedBillingCycles);
+
+  useEffect(() => {
+    const lContracts = localStorage.getItem('mock_contracts');
+    const lInvoices = localStorage.getItem('mock_invoices');
+    const lBilling = localStorage.getItem('mock_billingCycles');
+    if (lContracts) setContracts(JSON.parse(lContracts));
+    if (lInvoices) setInvoices(JSON.parse(lInvoices));
+    if (lBilling) setBillingCycles(JSON.parse(lBilling));
+  }, []);
+
   const rows = invoices
     .filter((i) => i.customerId === customerId)
-    .map((i) => ({
-      invoice: i,
-      contract: contracts.find((c) => c.id === i.contractId),
-      remain: i.total - i.paidAmount,
-      overdue: i.status === 'QuaHan' ? i.total - i.paidAmount : 0,
-    }));
+    .map((i) => {
+      const bc = billingCycles.find((b) => b.id === i.billingCycleId);
+      return {
+        invoice: i,
+        billingCycle: bc,
+        contract: contracts.find((c) => c.id === bc?.contractId),
+        remain: i.total - i.paidAmount,
+        overdue: i.status === 'QuaHan' ? i.total - i.paidAmount : 0,
+      };
+    });
 
   const currentDebt = rows.reduce((s, r) => s + r.remain, 0);
 
@@ -54,9 +73,11 @@ export function CongNo() {
           </table>
         </div>
         <div className="pagination" style={{ justifyContent: 'flex-end' }}>
-          <Link className="btn btn-primary" to="/customer/payment">
-            Thanh toán ngay
-          </Link>
+          {currentDebt > 0 && (
+            <Link className="btn btn-primary" to="/customer/payment">
+              Thanh toán ngay
+            </Link>
+          )}
         </div>
       </div>
     </div>

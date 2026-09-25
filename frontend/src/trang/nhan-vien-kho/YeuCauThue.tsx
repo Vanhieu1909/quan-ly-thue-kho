@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { taiYeuCau, luuYeuCau } from '../../du-lieu/yeuCauLocal';
+import { areas } from '../../du-lieu/duLieuMau';
 import type { RentalRequest } from '../../kieu';
 import { areaTypeLabel, formatDate } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiYeuCau } from '../../thanh-phan/NhanTrangThai';
 import { HopThoai } from '../../thanh-phan/HopThoai';
 
 export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuyet' }) {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<RentalRequest[]>(taiYeuCau);
   const [selected, setSelected] = useState<RentalRequest | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -16,9 +19,10 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
   }, [rows]);
 
   function updateStatus(id: string, status: RentalRequest['status'], extraNote?: string) {
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status, note: extraNote ?? r.note } : r)),
-    );
+    const updated = rows.map((r) => (r.id === id ? { ...r, status, note: extraNote ?? r.note } : r));
+    setRows(updated);
+    luuYeuCau(updated);
+    window.dispatchEvent(new Event('storage'));
     setSelected((s) => (s && s.id === id ? { ...s, status, note: extraNote ?? s.note } : s));
   }
 
@@ -48,7 +52,7 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
                 >
                   <td>{r.code}</td>
                   <td>{r.customerName}</td>
-                  <td>{r.requestedM2} m²</td>
+                  <td>{r.requestedCapacity} {r.rentalUnit}</td>
                   <td>{formatDate(r.date)}</td>
                   <td>
                     <NhanTrangThaiYeuCau status={r.status} />
@@ -87,11 +91,15 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
                 </div>
                 <div className="detail-item">
                   <label>Diện tích yêu cầu</label>
-                  <strong>{selected.requestedM2} m²</strong>
+                  <strong>{selected.requestedCapacity} {selected.rentalUnit}</strong>
                 </div>
                 <div className="detail-item">
                   <label>Loại khu vực</label>
                   <strong>{areaTypeLabel[selected.preferredType]}</strong>
+                </div>
+                <div className="detail-item">
+                  <label>Khu vực đã chọn</label>
+                  <strong>{selected.areaId ? areas.find(a => a.id === selected.areaId)?.code : 'Chưa chọn'}</strong>
                 </div>
                 <div className="detail-item">
                   <label>Thời gian thuê</label>
@@ -123,18 +131,29 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
               {mode === 'tiepNhan' && selected.status === 'DaTiepNhan' && (
                 <div className="summary-box">Yêu cầu đã được tiếp nhận và đang chờ quản trị viên phê duyệt.</div>
               )}
-              {mode === 'pheDuyet' && selected.status === 'DaTiepNhan' && (
+              {mode === 'pheDuyet' && (selected.status === 'DaTiepNhan' || selected.status === 'Moi') && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button className="btn btn-primary" onClick={() => updateStatus(selected.id, 'DaDuyet')}>
-                    Phê duyệt yêu cầu
+                  <button className="btn btn-primary" onClick={() => {
+                    updateStatus(selected.id, 'DaDuyet');
+                    navigate('/admin/contracts', { 
+                      state: { 
+                        openCreate: true, 
+                        areaId: selected.areaId,
+                        areaIds: selected.areaIds,
+                        startDate: selected.startDate,
+                        endDate: selected.endDate,
+                        customerName: selected.customerName,
+                        phone: selected.phone,
+                        email: selected.email
+                      } 
+                    });
+                  }}>
+                    Phê duyệt yêu cầu {selected.status === 'Moi' && '(Duyệt ngay)'}
                   </button>
                   <button className="btn btn-danger" onClick={() => updateStatus(selected.id, 'TuChoi', 'Từ chối bởi quản trị viên')}>
                     Từ chối
                   </button>
                 </div>
-              )}
-              {mode === 'pheDuyet' && selected.status === 'Moi' && (
-                <div className="summary-box">Nhân viên kho chưa tiếp nhận yêu cầu này.</div>
               )}
               {selected.note && (
                 <div className="summary-box">

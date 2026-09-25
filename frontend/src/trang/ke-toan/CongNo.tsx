@@ -1,9 +1,23 @@
-import { contracts, customers, invoices } from '../../du-lieu/duLieuMau';
+import { contracts as seedContracts, customers as seedCustomers, invoices as seedInvoices } from '../../du-lieu/duLieuMau';
 import { formatMoney } from '../../thu-vien/dinhDang';
+import { useState, useEffect } from 'react';
 
 export function CongNo() {
+  const [invoices, setInvoices] = useState(seedInvoices);
+  const [contracts, setContracts] = useState(seedContracts);
+  const [customers, setCustomers] = useState(seedCustomers);
+
+  useEffect(() => {
+    const lInv = localStorage.getItem('mock_invoices');
+    const lCont = localStorage.getItem('mock_contracts');
+    const lCust = localStorage.getItem('mock_customers');
+    if (lInv) setInvoices(JSON.parse(lInv));
+    if (lCont) setContracts(JSON.parse(lCont));
+    if (lCust) setCustomers(JSON.parse(lCust));
+  }, []);
+
   const rows = customers
-    .filter((c) => c.status === 'DangThue' || c.debt > 0)
+    .filter((c) => c.status === 'DangThue' || c.debt > 0 || invoices.some(i => i.customerId === c.id))
     .map((c) => {
       const custInvoices = invoices.filter((i) => i.customerId === c.id);
       const mustPay = custInvoices.reduce((s, i) => s + i.total, 0);

@@ -1,25 +1,54 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Plus, Pencil, Trash2 } from 'lucide-react';
-import { areas as seedAreas } from '../../du-lieu/duLieuMau';
-import type { Area, AreaStatus, AreaType } from '../../kieu';
-import { areaTypeLabel, formatMoney } from '../../thu-vien/dinhDang';
+import { areas as seedAreas, warehouses } from '../../du-lieu/duLieuMau';
+import type { Area, AreaStatus, AreaType, RentalUnit } from '../../kieu';
 import { NhanTrangThaiKhuVuc } from '../../thanh-phan/NhanTrangThai';
-import { HopThoai } from '../../thanh-phan/HopThoai';
 import { BanDoKho } from '../../thanh-phan/BanDoKho';
+import { HopThoai } from '../../thanh-phan/HopThoai';
+import { formatMoney } from '../../thu-vien/dinhDang';
 import { xuatCsv } from '../../thu-vien/xuatCsv';
 
 const emptyForm = {
+  warehouseId: 'w1',
+  code: '',
   name: '',
-  areaM2: '',
+  capacity: '',
+  rentalUnit: 'Pallet' as RentalUnit,
   type: 'Ke' as AreaType,
+  status: 'Trong' as AreaStatus,
   location: '',
   note: '',
+  mapRow: '9',
+  mapCol: '1',
+  mapRowSpan: '2',
+  mapColSpan: '3',
 };
 
 export function QuanLyKho() {
   const navigate = useNavigate();
-  const [areas, setAreas] = useState<Area[]>(seedAreas);
+  const [areas, setAreasState] = useState<Area[]>(() => {
+    const saved = localStorage.getItem('mock_areas');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Auto-migrate to new grid layout or flexible unit layout.
+      if (parsed.some((a: Area) => a.code.startsWith('KV-')) || (parsed.length > 0 && !parsed[0]?.capacity)) {
+        localStorage.setItem('mock_areas', JSON.stringify(seedAreas));
+        return seedAreas;
+      }
+      return parsed;
+    }
+    return seedAreas;
+  });
+
+  function setAreas(action: React.SetStateAction<Area[]>) {
+    setAreasState((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      localStorage.setItem('mock_areas', JSON.stringify(next));
+      return next;
+    });
+  }
+
   const [statusFilter, setStatusFilter] = useState<AreaStatus | 'All'>('All');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -33,22 +62,29 @@ export function QuanLyKho() {
   );
 
   function save() {
-    if (!form.name.trim() || !form.areaM2) {
+    if (!form.name.trim() || !form.capacity || !form.code.trim()) {
       setError('Vui lòng nhập đầy đủ các trường bắt buộc.');
       return;
     }
     const existing = areas.find((area) => area.id === editingId);
     const next: Area = {
       id: existing?.id ?? `a${Date.now()}`,
-      code: existing?.code ?? `KV-${String(areas.length + 1).padStart(3, '0')}`,
+      warehouseId: form.warehouseId,
+      code: form.code.trim(),
       name: form.name.trim(),
-      areaM2: Number(form.areaM2),
+      capacity: Number(form.capacity),
+      rentalUnit: form.rentalUnit,
       type: form.type,
-      status: existing?.status ?? 'Trong',
+      status: form.status,
       location: form.location,
       note: form.note,
-      // Khu mới xuất hiện ở cuối sơ đồ, không đè lên các khu đã có.
-      map: existing?.map ?? { floor: 1, row: 9, col: 10, rowSpan: 1, colSpan: 3 },
+      map: { 
+        floor: 1, 
+        row: Number(form.mapRow), 
+        col: Number(form.mapCol), 
+        rowSpan: Number(form.mapRowSpan), 
+        colSpan: Number(form.mapColSpan) 
+      },
     };
     setAreas((prev) => (existing ? prev.map((area) => (area.id === next.id ? next : area)) : [...prev, next]));
     setOpen(false);
@@ -59,14 +95,28 @@ export function QuanLyKho() {
 
   function moThem() {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, code: `A${areas.length + 1}` });
     setError(null);
     setOpen(true);
   }
 
   function moSua(area: Area) {
     setEditingId(area.id);
-    setForm({ name: area.name, areaM2: String(area.areaM2), type: area.type, location: area.location, note: area.note ?? '' });
+    setForm({ 
+      warehouseId: area.warehouseId, 
+      code: area.code, 
+      name: area.name, 
+      capacity: String(area.capacity), 
+      rentalUnit: area.rentalUnit,
+      type: area.type,
+      status: area.status,
+      location: area.location, 
+      note: area.note ?? '',
+      mapRow: String(area.map.row),
+      mapCol: String(area.map.col),
+      mapRowSpan: String(area.map.rowSpan ?? 1),
+      mapColSpan: String(area.map.colSpan ?? 1),
+    });
     setError(null);
     setOpen(true);
   }
@@ -78,7 +128,7 @@ export function QuanLyKho() {
   }
 
   function xuatDanhSach() {
-    xuatCsv('danh-sach-khu-vuc-kho', ['Mã khu vực', 'Tên khu vực', 'Diện tích (m²)', 'Loại', 'Vị trí', 'Trạng thái'], filtered.map((area) => [area.code, area.name, area.areaM2, areaTypeLabel[area.type], area.location, area.status]));
+    xuatCsv('danh-sach-khu-vuc-kho', ['Mã khu vực', 'Tên khu vực', 'Sức chứa / Số lượng', 'Đơn vị tính', 'Vị trí', 'Trạng thái'], filtered.map((area) => [area.code, area.name, area.capacity, area.rentalUnit, area.location, area.status]));
   }
 
   return (
@@ -99,14 +149,19 @@ export function QuanLyKho() {
               <div className="ban-do-kho__quick-action">
                 <span>
                   {selected.status === 'Trong'
-                    ? `Đã chọn ${selected.code}. Bạn có thể tạo hợp đồng ngay cho ${selected.areaM2} m².`
-                    : `${selected.code} hiện không còn trống, không thể tạo hợp đồng mới.`}
+                    ? `Đã chọn ${selected.code}. Bạn có thể tạo hợp đồng hoặc bảo dưỡng.`
+                    : `${selected.code} hiện trạng thái: ${selected.status === 'DaThue' ? 'Đang cho thuê' : 'Đang bảo dưỡng'}.`}
                 </span>
-                {selected.status === 'Trong' && (
-                  <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/contracts', { state: { areaId: selected.id, openCreate: true } })}>
-                    Tạo hợp đồng cho khu này
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  {selected.status === 'Trong' && (
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/contracts', { state: { areaId: selected.id, openCreate: true } })}>
+                      Tạo hợp đồng
+                    </button>
+                  )}
+                  <button className="btn btn-secondary btn-sm" onClick={() => moSua(selected)}>
+                    Sửa / Đổi trạng thái
                   </button>
-                )}
+                </div>
               </div>
             );
           })()}
@@ -143,8 +198,7 @@ export function QuanLyKho() {
               <tr>
                 <th>Mã KV</th>
                 <th>Tên khu vực</th>
-                <th>Diện tích</th>
-                <th>Loại</th>
+                <th>Sức chứa</th>
                 <th>Vị trí</th>
                 <th>Trạng thái</th>
                 <th>Thao tác</th>
@@ -159,8 +213,7 @@ export function QuanLyKho() {
                 >
                   <td>{a.code}</td>
                   <td>{a.name}</td>
-                  <td>{a.areaM2} m²</td>
-                  <td>{areaTypeLabel[a.type]}</td>
+                  <td>{a.capacity} {a.rentalUnit}</td>
                   <td>{a.location}</td>
                   <td>
                     <NhanTrangThaiKhuVuc status={a.status} />
@@ -209,8 +262,22 @@ export function QuanLyKho() {
       >
         {error && <div className="error-box">{error}</div>}
         <div className="field">
-          <label>Mã khu vực</label>
-          <input value={editingId ? areas.find((area) => area.id === editingId)?.code : `KV-${String(areas.length + 1).padStart(3, '0')}`} disabled />
+          <label>
+            Kho <span className="req">*</span>
+          </label>
+          <select value={form.warehouseId} onChange={(e) => setForm({ ...form, warehouseId: e.target.value })}>
+            {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label>
+            Mã khu vực <span className="req">*</span>
+          </label>
+          <input
+            value={form.code}
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
+            placeholder="VD: A5"
+          />
         </div>
         <div className="field">
           <label>
@@ -219,27 +286,56 @@ export function QuanLyKho() {
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="VD: Kệ tầng 1 - Dãy D"
+            placeholder="VD: Dãy A5"
           />
         </div>
         <div className="field-row">
           <div className="field">
             <label>
-              Diện tích (m²) <span className="req">*</span>
+              Sức chứa / Số lượng <span className="req">*</span>
             </label>
             <input
               type="number"
-              value={form.areaM2}
-              onChange={(e) => setForm({ ...form, areaM2: e.target.value })}
+              value={form.capacity}
+              onChange={(e) => setForm({ ...form, capacity: e.target.value })}
               placeholder="100"
             />
           </div>
           <div className="field">
-            <label>Loại khu vực</label>
-            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as AreaType })}>
-              <option value="Ke">Kệ</option>
-              <option value="Treo">Treo</option>
-              <option value="KeVIP">Kệ VIP</option>
+            <label>
+              Đơn vị tính <span className="req">*</span>
+            </label>
+            <select value={form.rentalUnit} onChange={(e) => setForm({ ...form, rentalUnit: e.target.value as RentalUnit })} disabled>
+              <option value="Pallet">Pallet</option>
+            </select>
+          </div>
+          <div className="field">
+            <label>Trạng thái</label>
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as AreaStatus })}>
+              <option value="Trong">Đang trống</option>
+              <option value="DaThue">Đang cho thuê</option>
+              <option value="BaoTri">Đang bảo dưỡng</option>
+            </select>
+          </div>
+        </div>
+        <div className="field-row">
+          <div className="field">
+            <label>Cột bản đồ (Dãy)</label>
+            <select value={form.mapCol} onChange={(e) => setForm({ ...form, mapCol: e.target.value })}>
+              <option value="1">Dãy A (Ngoài cùng trái)</option>
+              <option value="4">Dãy B (Giữa trái)</option>
+              <option value="7">Dãy C (Giữa phải)</option>
+              <option value="10">Dãy D (Ngoài cùng phải)</option>
+            </select>
+          </div>
+          <div className="field">
+            <label>Hàng từ trên xuống</label>
+            <select value={form.mapRow} onChange={(e) => setForm({ ...form, mapRow: e.target.value })}>
+              <option value="1">Hàng 1 (Trên cùng)</option>
+              <option value="3">Hàng 2</option>
+              <option value="5">Hàng 3</option>
+              <option value="7">Hàng 4</option>
+              <option value="9">Hàng 5 (Dưới cùng)</option>
             </select>
           </div>
         </div>
@@ -248,7 +344,7 @@ export function QuanLyKho() {
           <input
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
-            placeholder="VD: Khu kho · dãy trái"
+            placeholder="VD: Dãy A"
           />
         </div>
         <div className="field">

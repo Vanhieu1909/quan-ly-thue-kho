@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,560;9..144,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,560;9..144,700&display=swap');
 
 :root {
   --ink: #1a2332;
@@ -25,7 +25,7 @@
   --info-soft: #dbeafe;
   --shadow: 0 1px 2px rgba(21, 32, 51, 0.06), 0 8px 24px rgba(21, 32, 51, 0.04);
   --radius: 12px;
-  --font: 'Be Vietnam Pro', sans-serif;
+  --font: 'Inter', sans-serif;
   --display: 'Fraunces', Georgia, serif;
   --sidebar-w: 248px;
 }
@@ -442,6 +442,7 @@ p {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .field label {
@@ -457,6 +458,7 @@ p {
 .field input,
 .field select,
 .field textarea {
+  width: 100%;
   border: 1px solid var(--line);
   border-radius: 9px;
   padding: 10px 12px;
@@ -1125,3 +1127,6 @@ table.data .actions {
     padding-right: 16px;
   }
 }
+
+.ban-do-o--ChoHieuLuc { background: #fff7ed; border-color: #fdba74; }
+.ban-do-o--ChoHieuLuc .ban-do-o__status { color: #ea580c; }

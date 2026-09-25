@@ -1,8 +1,20 @@
-import { invoices } from '../../du-lieu/duLieuMau';
+import { useState, useEffect } from 'react';
+import { invoices as seedInvoices } from '../../du-lieu/duLieuMau';
+import type { Invoice } from '../../kieu';
 import { formatMoney } from '../../thu-vien/dinhDang';
 
 export function TheoDoiThue() {
-  const output = invoices.reduce((s, i) => s + i.vat, 0);
+  const [invoices, setInvoices] = useState<Invoice[]>(() => {
+    const raw = localStorage.getItem('mock_invoices');
+    return raw ? JSON.parse(raw) : seedInvoices;
+  });
+
+  useEffect(() => {
+    const raw = localStorage.getItem('mock_invoices');
+    if (raw) setInvoices(JSON.parse(raw));
+  }, []);
+
+  const output = invoices.reduce((s, i) => s + (i.vat || 0), 0);
 
   return (
     <div className="stack">

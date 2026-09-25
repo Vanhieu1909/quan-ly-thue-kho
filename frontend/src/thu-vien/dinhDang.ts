@@ -31,9 +31,9 @@ export const roleLabel: Record<Role, string> = {
 };
 
 export const areaTypeLabel: Record<AreaType, string> = {
-  Ke: 'Kệ',
-  Treo: 'Treo',
-  KeVIP: 'Kệ VIP',
+  Ke: 'Sàn có sẵn kệ',
+  Treo: 'Sàn có giá treo',
+  KeVIP: 'Sàn có kệ VIP',
 };
 
 export const areaStatusLabel: Record<AreaStatus, string> = {
@@ -43,7 +43,7 @@ export const areaStatusLabel: Record<AreaStatus, string> = {
 };
 
 export const contractStatusLabel: Record<ContractStatus, string> = {
-  ChoHieuLuc: 'Chờ hiệu lực',
+  ChoHieuLuc: 'Chờ thanh toán cọc',
   DangHieuLuc: 'Đang hiệu lực',
   SapHetHan: 'Sắp hết hạn',
   DaGiaHan: 'Đã gia hạn',

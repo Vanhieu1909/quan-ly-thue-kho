@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import {
   BarChart3,
@@ -12,20 +12,25 @@ import {
   Wallet,
   Warehouse,
   CreditCard,
-  FileSpreadsheet,
-  Landmark,
   UserCircle,
+  UserCog,
+  ClipboardList,
+  ArrowLeftRight,
+  Calculator
 } from 'lucide-react';
 import { NhaCungCapXacThuc, dungXacThuc } from './boi-canh/BoiCanhXacThuc';
 import { BoCucUngDung, type MucDieuHuong } from './bo-cuc/BoCucUngDung';
 import type { Role } from './kieu';
 import { DangNhap } from './trang/dang-nhap/DangNhap';
+import { DangKy } from './trang/dang-nhap/DangKy';
 import { TongQuan as TongQuanQuanTri } from './trang/quan-tri/TongQuan';
 import { QuanLyKho } from './trang/quan-tri/QuanLyKho';
 import { QuanLyKhachHang } from './trang/quan-tri/QuanLyKhachHang';
 import { QuanLyHopDong } from './trang/quan-tri/QuanLyHopDong';
+import { ChiTietHopDongQuanTri } from './trang/quan-tri/ChiTietHopDongQuanTri';
 import { CaiDatHeThong } from './trang/quan-tri/CaiDatHeThong';
 import { KeToan } from './trang/quan-tri/KeToan';
+import { QuanLyTaiKhoan } from './trang/quan-tri/QuanLyTaiKhoan';
 import { TaiKhoan } from './trang/quan-tri/TaiKhoan';
 import { TongQuan as TongQuanNhanVien } from './trang/nhan-vien-kho/TongQuan';
 import { KiemKeKho } from './trang/nhan-vien-kho/KiemKeKho';
@@ -43,6 +48,7 @@ import { HoaDon } from './trang/khach-hang/HoaDon';
 import { CongNo as CongNoKhachHang } from './trang/khach-hang/CongNo';
 import { ThanhToan } from './trang/khach-hang/ThanhToan';
 import { DangKyThue } from './trang/khach-hang/DangKyThue';
+import { LichSuGiaoDich } from './trang/khach-hang/LichSuGiaoDich';
 
 const homeByRole: Record<Role, string> = {
   admin: '/admin',
@@ -52,9 +58,9 @@ const homeByRole: Record<Role, string> = {
 };
 
 function RequireRole({ roles, children }: { roles: Role[]; children: ReactNode }) {
-  const { user } = dungXacThuc();
-  if (!user) return <Navigate to="/login" replace />;
-  if (!roles.includes(user.role)) return <Navigate to={homeByRole[user.role]} replace />;
+  const { account } = dungXacThuc();
+  if (!account) return <Navigate to="/login" replace />;
+  if (!roles.includes(account.role)) return <Navigate to={homeByRole[account.role]} replace />;
   return <>{children}</>;
 }
 
@@ -68,19 +74,41 @@ function AdminShell() {
     '/admin/accounting': 'Kế toán',
     '/admin/reports': 'Báo cáo',
     '/admin/settings': 'Cài đặt hệ thống',
-    '/admin/account': 'Tài khoản',
+    '/admin/account': 'Hồ sơ cá nhân',
+    '/admin/accounts': 'Quản lý tài khoản',
     '/admin/rental-requests': 'Phê duyệt yêu cầu thuê',
   };
+  const [pendingReqCount, setPendingReqCount] = useState(0);
+  useEffect(() => {
+    const checkCount = () => {
+      try {
+        const raw = localStorage.getItem('thue-kho-rental-requests');
+        if (raw) {
+          const reqs = JSON.parse(raw);
+          setPendingReqCount(reqs.filter((r: any) => r.status === 'Moi' || r.status === 'DaTiepNhan').length);
+        }
+      } catch {}
+    };
+    checkCount();
+    window.addEventListener('storage', checkCount);
+    const intv = setInterval(checkCount, 2000);
+    return () => {
+      window.removeEventListener('storage', checkCount);
+      clearInterval(intv);
+    };
+  }, []);
+
   const nav: MucDieuHuong[] = [
     { to: '/admin', label: 'Tổng quan', icon: LayoutDashboard },
     { to: '/admin/areas', label: 'Quản lý kho', icon: Warehouse },
     { to: '/admin/customers', label: 'Khách hàng', icon: Users },
     { to: '/admin/contracts', label: 'Hợp đồng', icon: FileText },
-    { to: '/admin/rental-requests', label: 'Duyệt yêu cầu thuê', icon: Inbox },
+    { to: '/admin/rental-requests', label: 'Duyệt yêu cầu thuê', icon: Inbox, badge: pendingReqCount },
     { to: '/admin/accounting', label: 'Kế toán', icon: Wallet },
     { to: '/admin/reports', label: 'Báo cáo', icon: BarChart3 },
+    { to: '/admin/accounts', label: 'Tài khoản', icon: UserCog },
     { to: '/admin/settings', label: 'Cài đặt', icon: Settings },
-    { to: '/admin/account', label: 'Tài khoản', icon: UserCircle },
+    { to: '/admin/account', label: 'Hồ sơ', icon: UserCircle },
   ];
   return (
     <BoCucUngDung
@@ -99,10 +127,30 @@ function StaffShell() {
     '/staff/areas': 'Khu vực kho và kiểm kê',
     '/staff/requests': 'Yêu cầu thuê',
   };
+  const [pendingReqCount, setPendingReqCount] = useState(0);
+  useEffect(() => {
+    const checkCount = () => {
+      try {
+        const raw = localStorage.getItem('thue-kho-rental-requests');
+        if (raw) {
+          const reqs = JSON.parse(raw);
+          setPendingReqCount(reqs.filter((r: any) => r.status === 'Moi').length);
+        }
+      } catch {}
+    };
+    checkCount();
+    window.addEventListener('storage', checkCount);
+    const intv = setInterval(checkCount, 2000);
+    return () => {
+      window.removeEventListener('storage', checkCount);
+      clearInterval(intv);
+    };
+  }, []);
+
   const nav: MucDieuHuong[] = [
     { to: '/staff', label: 'Tổng quan', icon: LayoutDashboard },
     { to: '/staff/areas', label: 'Khu vực kho và kiểm kê', icon: ClipboardCheck },
-    { to: '/staff/requests', label: 'Tiếp nhận yêu cầu thuê', icon: Inbox },
+    { to: '/staff/requests', label: 'Tiếp nhận yêu cầu thuê', icon: Inbox, badge: pendingReqCount },
   ];
   return (
     <BoCucUngDung
@@ -119,17 +167,19 @@ function AccountantShell() {
   const titles: Record<string, string> = {
     '/accountant': 'Tổng quan kế toán',
     '/accountant/invoices': 'Hóa đơn',
-    '/accountant/debts': 'Công nợ',
-    '/accountant/cashflow': 'Thu – Chi',
-    '/accountant/tax': 'Theo dõi thuế',
+    '/accountant/debts': 'Quản lý Công nợ',
+    '/accountant/cashflow': 'Sổ quỹ / Lịch sử GD',
+    '/accountant/tax': 'Theo dõi Thuế',
     '/accountant/reports': 'Báo cáo',
   };
+  const { account } = dungXacThuc();
   const nav: MucDieuHuong[] = [
+    ...(account?.role === 'admin' ? [{ to: '/admin', label: '← Về trang Quản trị', icon: Settings }] : []),
     { to: '/accountant', label: 'Tổng quan', icon: LayoutDashboard },
     { to: '/accountant/invoices', label: 'Hóa đơn', icon: Receipt },
     { to: '/accountant/debts', label: 'Công nợ', icon: Wallet },
-    { to: '/accountant/cashflow', label: 'Thu – Chi', icon: Landmark },
-    { to: '/accountant/tax', label: 'Thuế', icon: FileSpreadsheet },
+    { to: '/accountant/cashflow', label: 'Sổ quỹ / Lịch sử GD', icon: ArrowLeftRight },
+    { to: '/accountant/tax', label: 'Theo dõi Thuế', icon: Calculator },
     { to: '/accountant/reports', label: 'Báo cáo', icon: BarChart3 },
   ];
   return (
@@ -151,6 +201,7 @@ function CustomerShell() {
     '/customer/debts': 'Công nợ',
     '/customer/payment': 'Thanh toán',
     '/customer/rental-request': 'Đăng ký thuê mặt bằng',
+    '/customer/transactions': 'Lịch sử giao dịch',
   };
   const title =
     titles[pathname] ||
@@ -162,6 +213,7 @@ function CustomerShell() {
     { to: '/customer/invoices', label: 'Hóa đơn', icon: Receipt },
     { to: '/customer/debts', label: 'Công nợ', icon: Wallet },
     { to: '/customer/payment', label: 'Thanh toán', icon: CreditCard },
+    { to: '/customer/transactions', label: 'Lịch sử giao dịch', icon: ClipboardList },
   ];
   return (
     <BoCucUngDung title={title} subtitle="Khách hàng" brandSub="Cổng khách hàng" nav={nav} />
@@ -172,6 +224,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<DangNhap />} />
+      <Route path="/dang-ky" element={<DangKy />} />
       <Route path="/" element={<RootRedirect />} />
 
       <Route
@@ -186,10 +239,12 @@ function AppRoutes() {
         <Route path="areas" element={<QuanLyKho />} />
         <Route path="customers" element={<QuanLyKhachHang />} />
         <Route path="contracts" element={<QuanLyHopDong />} />
+        <Route path="contracts/:id" element={<ChiTietHopDongQuanTri />} />
         <Route path="accounting" element={<KeToan />} />
         <Route path="reports" element={<BaoCao />} />
         <Route path="settings" element={<CaiDatHeThong />} />
         <Route path="account" element={<TaiKhoan />} />
+        <Route path="accounts" element={<QuanLyTaiKhoan />} />
         <Route path="rental-requests" element={<YeuCauThue mode="pheDuyet" />} />
       </Route>
 
@@ -238,6 +293,7 @@ function AppRoutes() {
         <Route path="debts" element={<CongNoKhachHang />} />
         <Route path="payment" element={<ThanhToan />} />
         <Route path="rental-request" element={<DangKyThue />} />
+        <Route path="transactions" element={<LichSuGiaoDich />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -246,9 +302,9 @@ function AppRoutes() {
 }
 
 function RootRedirect() {
-  const { user } = dungXacThuc();
-  if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={homeByRole[user.role]} replace />;
+  const { account } = dungXacThuc();
+  if (!account) return <Navigate to="/login" replace />;
+  return <Navigate to={homeByRole[account.role]} replace />;
 }
 
 export default function UngDung() {

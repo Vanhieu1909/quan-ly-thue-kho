@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { Area, AreaStatus } from '../kieu';
-import { areaStatusLabel, areaTypeLabel } from '../thu-vien/dinhDang';
+import { areaStatusLabel } from '../thu-vien/dinhDang';
+import { contracts as seedContracts, customers as seedCustomers } from '../du-lieu/duLieuMau';
 
 export type CheDoBanDo = 'xem' | 'chon-thue' | 'kiem-ke';
 
@@ -9,6 +10,7 @@ interface BanDoKhoProps {
   /** Trạng thái hiển thị trên ô (mặc định lấy từ area.status) */
   statusById?: Record<string, AreaStatus>;
   selectedId?: string | null;
+  selectedIds?: string[];
   onSelect?: (area: Area) => void;
   mode?: CheDoBanDo;
   title?: string;
@@ -16,18 +18,45 @@ interface BanDoKhoProps {
   choPhepChon?: AreaStatus[];
 }
 
-const FLOOR_COLS = 12;
-const FLOOR_ROWS = 9;
+const FLOOR_ROWS = 12;
 
 export function BanDoKho({
   areas,
   statusById,
   selectedId,
+  selectedIds,
   onSelect,
   mode = 'xem',
   title = 'Bản đồ kho',
   choPhepChon,
 }: BanDoKhoProps) {
+  const tenantMap = useMemo(() => {
+    try {
+      const localContracts = localStorage.getItem('mock_contracts');
+      const localCustomers = localStorage.getItem('mock_customers');
+      
+      const contracts = localContracts ? JSON.parse(localContracts) : seedContracts;
+      const customers = localCustomers ? JSON.parse(localCustomers) : seedCustomers;
+      
+      const map: Record<string, { name: string, status: string }> = {};
+      for (const a of areas) {
+        if (a.status === 'DaThue') {
+          // Hỗ trợ cả hợp đồng 1 khu (areaId) lẫn nhiều khu (areaIds)
+          const activeContract = contracts.find((c: any) =>
+            (c.status === 'DangHieuLuc' || c.status === 'ChoHieuLuc') &&
+            (c.areaIds ? c.areaIds.includes(a.id) : c.areaId === a.id)
+          );
+          if (activeContract) {
+            const cus = customers.find((c: any) => c.id === activeContract.customerId);
+            if (cus) map[a.id] = { name: cus.name, status: activeContract.status };
+          }
+        }
+      }
+      return map;
+    } catch (e) {
+      return {};
+    }
+  }, [areas]);
   const floors = useMemo(
     () => [...new Set(areas.map((a) => a.map.floor))].sort((a, b) => a - b),
     [areas],
@@ -86,14 +115,21 @@ export function BanDoKho({
         <div
           className="ban-do-kho__grid"
           style={{
-            gridTemplateColumns: `repeat(${FLOOR_COLS}, 1fr)`,
+            gridTemplateColumns: `repeat(14, 1fr)`,
             gridTemplateRows: `repeat(${FLOOR_ROWS}, minmax(54px, 1fr))`,
           }}
         >
           {onFloor.map((a) => {
             const st = statusOf(a);
             const selectable = coTheChon(a);
-            const selected = selectedId === a.id;
+            const selected = selectedIds ? selectedIds.includes(a.id) : selectedId === a.id;
+            
+            // 2 Paths: Between A & B (col 4), and C & D (col 11)
+            let displayCol = a.map.col;
+            if (a.map.col === 4) displayCol = 5;       // B shifted by 1
+            else if (a.map.col === 7) displayCol = 8;  // C shifted by 1 (glued to B)
+            else if (a.map.col === 10) displayCol = 12; // D shifted by 2
+
             return (
               <button
                 key={a.id}
@@ -101,6 +137,7 @@ export function BanDoKho({
                 className={[
                   'ban-do-o',
                   `ban-do-o--${st}`,
+                  st === 'DaThue' && tenantMap[a.id]?.status === 'ChoHieuLuc' ? 'ban-do-o--ChoHieuLuc' : '',
                   selectable ? 'ban-do-o--clickable' : 'ban-do-o--locked',
                   selected ? 'ban-do-o--selected' : '',
                 ]
@@ -108,7 +145,7 @@ export function BanDoKho({
                   .join(' ')}
                 style={{
                   gridRow: `${a.map.row} / span ${a.map.rowSpan ?? 1}`,
-                  gridColumn: `${a.map.col} / span ${a.map.colSpan ?? 1}`,
+                  gridColumn: `${displayCol} / span ${a.map.colSpan ?? 1}`,
                 }}
                 onClick={() => handleClick(a)}
                 disabled={!selectable}
@@ -117,17 +154,41 @@ export function BanDoKho({
                 <strong>{a.code}</strong>
                 <span className="ban-do-o__name">{a.name}</span>
                 <span className="ban-do-o__meta">
-                  {a.areaM2} m² · {areaTypeLabel[a.type]}
+                  {a.capacity} {a.rentalUnit}
                 </span>
                 <span className={`ban-do-o__status ban-do-o__status--${st}`}>
-                  {areaStatusLabel[st]}
+                  {st === 'DaThue' && tenantMap[a.id] 
+                    ? (tenantMap[a.id].status === 'ChoHieuLuc' ? `Chờ cọc (${tenantMap[a.id].name})` : `Đang thuê (${tenantMap[a.id].name})`) 
+                    : areaStatusLabel[st]}
                 </span>
               </button>
             );
           })}
+
+          {[4, 11].map(col => (
+            <div
+              key={`aisle-${col}`}
+              style={{
+                gridRow: `1 / span ${FLOOR_ROWS}`,
+                gridColumn: col,
+                backgroundColor: '#e2e8f0', // distinct gray-blue color
+                border: '2px dashed #94a3b8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#475569',
+                writingMode: 'vertical-rl',
+                textOrientation: 'upright',
+                letterSpacing: 8,
+                borderRadius: 8,
+                fontWeight: 'bold'
+              }}
+            >
+              LỐI ĐI
+            </div>
+          ))}
         </div>
       </div>
-
       {selectedId && (
         <div className="ban-do-kho__selected">
           {(() => {
@@ -136,8 +197,8 @@ export function BanDoKho({
             const st = statusOf(a);
             return (
               <>
-                Đã chọn: <strong>{a.code}</strong> — {a.name} ({a.areaM2} m²) ·{' '}
-                <em>{areaStatusLabel[st]}</em>
+                Đã chọn: <strong>{a.code}</strong> — {a.name} ({a.capacity} {a.rentalUnit}) ·{' '}
+                <em>{st === 'DaThue' && tenantMap[a.id] ? (tenantMap[a.id].status === 'ChoHieuLuc' ? `Chờ cọc (${tenantMap[a.id].name})` : `Đang thuê (${tenantMap[a.id].name})`) : areaStatusLabel[st]}</em>
               </>
             );
           })()}

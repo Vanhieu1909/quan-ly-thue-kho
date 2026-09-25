@@ -93,7 +93,7 @@ export function QuanLyKhuVuc() {
                   <td>{idx + 1}</td>
                   <td>{a.code}</td>
                   <td>{a.name}</td>
-                  <td>{a.areaM2} m²</td>
+                  <td>{a.capacity} {a.rentalUnit}</td>
                   <td>{areaTypeLabel[a.type]}</td>
                   <td>Tầng {a.map.floor}</td>
                   <td>

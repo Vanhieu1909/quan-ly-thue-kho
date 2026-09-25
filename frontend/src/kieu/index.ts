@@ -15,15 +15,24 @@ export type CustomerStatus = 'DangThue' | 'NgungThue';
 export type CustomerType = 'CaNhan' | 'DoanhNghiep';
 export type PaymentCycle = 'Thang' | 'Quy' | 'Nam';
 
-export interface User {
+export interface Account {
   id: string;
   username: string;
-  password: string;
+  passwordHash: string;
   name: string;
   role: Role;
   email?: string;
   phone?: string;
-  customerId?: string;
+  customerId?: string; // Tùy chọn nếu Account thuộc về một Customer
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface Warehouse {
+  id: string;
+  code: string;
+  name: string;
+  totalAreaM2: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
 }
 
 /** Vị trí ô trên sơ đồ kho (lưới theo tầng). row/col mô tả đúng vị trí thực tế,
@@ -36,20 +45,26 @@ export interface AreaMapPos {
   colSpan?: number;
 }
 
+export type RentalUnit = 'Pallet' | 'm2' | 'Bo' | 'Met';
+
 export interface Area {
   id: string;
+  warehouseId: string;
   code: string;
   name: string;
-  areaM2: number;
+  capacity: number;
+  rentalUnit: RentalUnit;
   type: AreaType;
   status: AreaStatus;
   location: string;
   note?: string;
   map: AreaMapPos;
+  currentContractId?: string;
 }
 
 export interface Customer {
   id: string;
+  accountId?: string;
   code: string;
   name: string;
   type: CustomerType;
@@ -66,8 +81,10 @@ export interface Contract {
   id: string;
   code: string;
   customerId: string;
-  areaId: string;
-  areaM2: number;
+  areaId: string;       // khu vực đầu tiên (backward compat)
+  areaIds?: string[];   // tất cả khu vực (multi-area)
+  capacity: number;
+  rentalUnit: RentalUnit;
   startDate: string;
   endDate: string;
   unitPrice: number;
@@ -79,12 +96,22 @@ export interface Contract {
   note?: string;
 }
 
+export interface BillingCycle {
+  id: string;
+  contractId: string;
+  startDate: string;
+  endDate: string;
+  dueDate: string;
+  totalAmount: number;
+  status: 'PENDING' | 'INVOICED' | 'PAID';
+}
+
 export interface Invoice {
   id: string;
   number: string;
   date: string;
-  customerId: string;
-  contractId: string;
+  customerId: string; // Vẫn giữ để tiện tra cứu
+  billingCycleId: string;
   period: string;
   content: string;
   amountBeforeTax: number;
@@ -93,6 +120,7 @@ export interface Invoice {
   dueDate: string;
   status: PaymentStatus;
   paidAmount: number;
+  debtAmount: number;
 }
 
 export interface Transaction {
@@ -112,11 +140,15 @@ export interface Transaction {
 export interface RentalRequest {
   id: string;
   code: string;
+  customerId?: string;
   customerName: string;
   phone: string;
   email: string;
-  requestedM2: number;
+  requestedCapacity: number;
+  rentalUnit: RentalUnit;
   preferredType: AreaType;
+  areaId?: string; // Legacy
+  areaIds?: string[];
   startDate: string;
   endDate: string;
   specialRequest?: string;
@@ -143,6 +175,8 @@ export interface InspectionItem {
 
 export interface Inspection {
   id: string;
+  warehouseId: string;
+  inspectorId: string;
   month: string;
   date: string;
   items: InspectionItem[];

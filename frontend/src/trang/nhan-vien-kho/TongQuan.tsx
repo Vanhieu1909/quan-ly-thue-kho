@@ -1,14 +1,29 @@
-import { areas, rentalRequests } from '../../du-lieu/duLieuMau';
+import { useState, useEffect } from 'react';
+import { areas as seedAreas, rentalRequests as seedRentalRequests } from '../../du-lieu/duLieuMau';
+import { taiYeuCau } from '../../du-lieu/yeuCauLocal';
+import type { Area, RentalRequest } from '../../kieu';
 import { NhanTrangThaiKhuVuc, NhanTrangThaiYeuCau } from '../../thanh-phan/NhanTrangThai';
 import { BangDieuKhien, TheThongKe } from '../../thanh-phan/TheThongKe';
 import { areaTypeLabel, formatDate } from '../../thu-vien/dinhDang';
 
 export function TongQuan() {
+  const [areas, setAreas] = useState<Area[]>(seedAreas);
+  const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>(seedRentalRequests);
+
+  useEffect(() => {
+    const lAreas = localStorage.getItem('mock_areas');
+    if (lAreas) setAreas(JSON.parse(lAreas));
+    // Tải yêu cầu thuê từ localStorage (bao gồm cả yêu cầu mới từ khách hàng)
+    const localReqs = taiYeuCau();
+    if (localReqs.length > 0) setRentalRequests(localReqs);
+  }, []);
+
   const total = areas.length;
   const rented = areas.filter((a) => a.status === 'DaThue').length;
   const empty = areas.filter((a) => a.status === 'Trong').length;
   const maintenance = areas.filter((a) => a.status === 'BaoTri').length;
-  const alerts = areas.filter((a) => a.status === 'BaoTri' || a.status === 'Trong');
+
+  const newRequests = rentalRequests.filter((r) => r.status === 'Moi');
 
   return (
     <div className="stack">
@@ -33,15 +48,21 @@ export function TongQuan() {
                   <NhanTrangThaiKhuVuc status={a.status} />
                 </div>
               ))}
-            {alerts.filter((a) => a.status === 'Trong').slice(0, 2).map((a) => (
-              <div className="alert-item" key={a.id}>
-                <div>
-                  <strong>{a.code} · {a.name}</strong>
-                  <span>Còn trống — sẵn sàng bàn giao</span>
+            {areas
+              .filter((a) => a.status === 'Trong')
+              .slice(0, 2)
+              .map((a) => (
+                <div className="alert-item" key={a.id}>
+                  <div>
+                    <strong>{a.code} · {a.name}</strong>
+                    <span>Còn trống — sẵn sàng bàn giao</span>
+                  </div>
+                  <NhanTrangThaiKhuVuc status={a.status} />
                 </div>
-                <NhanTrangThaiKhuVuc status={a.status} />
-              </div>
-            ))}
+              ))}
+            {maintenance === 0 && empty === 0 && (
+              <div className="empty">Tất cả khu vực đang hoạt động bình thường</div>
+            )}
           </div>
         </BangDieuKhien>
 
@@ -56,15 +77,8 @@ export function TongQuan() {
             </div>
             <div className="alert-item">
               <div>
-                <strong>Kiểm kê đột xuất KV-A03</strong>
-                <span>Khu vực bảo trì · 08/09/2026</span>
-              </div>
-              <span className="badge badge-warn">Ưu tiên</span>
-            </div>
-            <div className="alert-item">
-              <div>
                 <strong>Yêu cầu thuê mới</strong>
-                <span>{rentalRequests.filter((r) => r.status === 'Moi').length} yêu cầu chờ tiếp nhận</span>
+                <span>{newRequests.length} yêu cầu chờ tiếp nhận</span>
               </div>
               <NhanTrangThaiYeuCau status="Moi" />
             </div>
@@ -72,7 +86,7 @@ export function TongQuan() {
         </BangDieuKhien>
       </div>
 
-      <BangDieuKhien title="Tóm tắt yêu cầu thuê gần đây">
+      <BangDieuKhien title="Yêu cầu thuê gần đây">
         <div className="table-wrap">
           <table className="data">
             <thead>
@@ -86,11 +100,11 @@ export function TongQuan() {
               </tr>
             </thead>
             <tbody>
-              {rentalRequests.slice(0, 3).map((r) => (
+              {rentalRequests.slice(0, 5).map((r) => (
                 <tr key={r.id}>
                   <td>{r.code}</td>
                   <td>{r.customerName}</td>
-                  <td>{r.requestedM2} m²</td>
+                  <td>{r.requestedCapacity} {r.rentalUnit}</td>
                   <td>{areaTypeLabel[r.preferredType]}</td>
                   <td>{formatDate(r.date)}</td>
                   <td>
@@ -98,6 +112,13 @@ export function TongQuan() {
                   </td>
                 </tr>
               ))}
+              {rentalRequests.length === 0 && (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="empty">Chưa có yêu cầu thuê nào</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

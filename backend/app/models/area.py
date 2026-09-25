@@ -18,6 +18,7 @@ class AreaMapPos(BaseModel):
 class Area(Document):
     code: str
     name: str
+    warehouse_id: str
     area_m2: float
     type: AreaType
     status: AreaStatus

@@ -1,17 +1,31 @@
 import { Link } from 'react-router-dom';
-import { areas, contracts, invoices } from '../../du-lieu/duLieuMau';
+import { areas as seedAreas, contracts as seedContracts, invoices as seedInvoices } from '../../du-lieu/duLieuMau';
 import { dungXacThuc } from '../../boi-canh/BoiCanhXacThuc';
 import { formatDate, formatMoney } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiHopDong, NhanTrangThaiThanhToan } from '../../thanh-phan/NhanTrangThai';
 import { TheThongKe } from '../../thanh-phan/TheThongKe';
+import { useState, useEffect } from 'react';
 
 export function TongQuan() {
-  const { user } = dungXacThuc();
-  const customerId = user?.customerId || 'c1';
+  const { account } = dungXacThuc();
+  const customerId = account?.customerId;
+  
+  const [areas, setAreas] = useState(seedAreas);
+  const [contracts, setContracts] = useState(seedContracts);
+  const [invoices, setInvoices] = useState(seedInvoices);
+
+  useEffect(() => {
+    const lAreas = localStorage.getItem('mock_areas');
+    const lContracts = localStorage.getItem('mock_contracts');
+    const lInvoices = localStorage.getItem('mock_invoices');
+    if (lAreas) setAreas(JSON.parse(lAreas));
+    if (lContracts) setContracts(JSON.parse(lContracts));
+    if (lInvoices) setInvoices(JSON.parse(lInvoices));
+  }, []);
+
   const myContracts = contracts.filter(
-    (c) => c.customerId === customerId && (c.status === 'DangHieuLuc' || c.status === 'SapHetHan'),
+    (c) => c.customerId === customerId && (c.status === 'DangHieuLuc' || c.status === 'SapHetHan' || c.status === 'ChoHieuLuc'),
   );
-  const rentedM2 = myContracts.reduce((s, c) => s + c.areaM2, 0);
   const paid = invoices
     .filter((i) => i.customerId === customerId && i.status === 'DaThanhToan')
     .reduce((s, i) => s + i.paidAmount, 0);
@@ -19,11 +33,13 @@ export function TongQuan() {
     (i) => i.customerId === customerId && i.status !== 'DaThanhToan',
   );
 
+  const totalDebt = unpaid.reduce((s, i) => s + (i.total - i.paidAmount), 0);
+
   return (
     <div className="stack">
       <div className="stats">
         <TheThongKe label="Hợp đồng đang thuê" value={myContracts.length} />
-        <TheThongKe label="Tổng diện tích đang thuê" value={`${rentedM2} m²`} />
+        <TheThongKe label="Công nợ cần thanh toán" value={formatMoney(totalDebt)} tone={totalDebt > 0 ? "danger" : "default"} />
         <TheThongKe label="Tiền đã thanh toán" value={formatMoney(paid)} tone="ok" />
       </div>
 
@@ -50,8 +66,8 @@ export function TongQuan() {
               {myContracts.map((c) => (
                 <tr key={c.id}>
                   <td>{c.code}</td>
-                  <td>{areas.find((a) => a.id === c.areaId)?.code}</td>
-                  <td>{c.areaM2} m²</td>
+                  <td>{(c.areaIds ?? [c.areaId]).map(id => areas.find(a => a.id === id)?.code).filter(Boolean).join(', ')}</td>
+                  <td>{c.capacity} {c.rentalUnit}</td>
                   <td>{formatDate(c.startDate)}</td>
                   <td>{formatDate(c.endDate)}</td>
                   <td>

@@ -11,7 +11,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { customers, fillRateByMonth, invoices, revenueByMonth, transactions } from '../../du-lieu/duLieuMau';
+import {
+  customers as seedCustomers,
+  fillRateByMonth,
+  invoices as seedInvoices,
+  revenueByMonth,
+  transactions as seedTransactions,
+} from '../../du-lieu/duLieuMau';
 import { formatMoney } from '../../thu-vien/dinhDang';
 import { BangDieuKhien } from '../../thanh-phan/TheThongKe';
 
@@ -26,12 +32,33 @@ const COLORS = ['#1f6b5a', '#d4a017', '#3d4a5c', '#6b7a8d', '#b45309'];
 
 export function BaoCao() {
   const [tab, setTab] = useState<'summary' | 'debt' | 'cash' | 'tax' | 'fill'>('summary');
+  const [customers] = useState(() => {
+    const raw = localStorage.getItem('mock_customers');
+    return raw ? JSON.parse(raw) : seedCustomers;
+  });
+  const [invoices] = useState(() => {
+    const raw = localStorage.getItem('mock_invoices');
+    return raw ? JSON.parse(raw) : seedInvoices;
+  });
+  const [transactions] = useState(() => {
+    const raw = localStorage.getItem('mock_transactions');
+    return raw ? JSON.parse(raw) : seedTransactions;
+  });
 
-  const debtRows = customers.map((c) => {
-    const list = invoices.filter((i) => i.customerId === c.id);
-    const must = list.reduce((s, i) => s + i.total, 0);
-    const paid = list.reduce((s, i) => s + i.paidAmount, 0);
-    const overdue = list.filter((i) => i.status === 'QuaHan').reduce((s, i) => s + (i.total - i.paidAmount), 0);
+  interface DebtRow {
+    name: string;
+    must: number;
+    paid: number;
+    remain: number;
+    overdue: number;
+    rate: number;
+  }
+
+  const debtRows: DebtRow[] = customers.map((c: any) => {
+    const list = invoices.filter((i: any) => i.customerId === c.id);
+    const must = list.reduce((s: number, i: any) => s + (i.total || 0), 0);
+    const paid = list.reduce((s: number, i: any) => s + (i.paidAmount || 0), 0);
+    const overdue = list.filter((i: any) => i.status === 'QuaHan').reduce((s: number, i: any) => s + ((i.total || 0) - (i.paidAmount || 0)), 0);
     return { name: c.name, must, paid, remain: must - paid, overdue, rate: must ? Math.round((paid / must) * 100) : 100 };
   });
 
@@ -58,12 +85,33 @@ export function BaoCao() {
               <input className="filter-select" type="date" defaultValue="2026-07-01" />
               <input className="filter-select" type="date" defaultValue="2026-09-30" />
             </div>
-            <button className="btn btn-secondary">Xuất báo cáo</button>
+            <button className="btn btn-secondary" onClick={() => window.print()}>Xuất báo cáo</button>
           </div>
           <BangDieuKhien title="Doanh thu theo tháng (triệu đồng)">
             <div className="chart-box">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueByMonth}>
+                <BarChart 
+                  data={(() => {
+                    const today = new Date();
+                    const months = [];
+                    for (let i = 5; i >= 0; i--) {
+                      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                      months.push({ month: `T${d.getMonth() + 1}`, year: d.getFullYear(), revenue: 0 });
+                    }
+                    transactions.forEach((t: any) => {
+                      if (t.type === 'Thu' && t.status === 'XacNhan' && t.date) {
+                        const tDate = new Date(t.date);
+                        const m = `T${tDate.getMonth() + 1}`;
+                        const y = tDate.getFullYear();
+                        const bucket = months.find(x => x.month === m && x.year === y);
+                        if (bucket) {
+                          bucket.revenue += (t.amount / 1000000);
+                        }
+                      }
+                    });
+                    return months;
+                  })()}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e8eef5" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -276,7 +324,7 @@ export function BaoCao() {
               <thead>
                 <tr>
                   <th>Tháng</th>
-                  <th>Tổng DT</th>
+                  <th>Tổng SC</th>
                   <th>Đã thuê</th>
                   <th>Còn trống</th>
                   <th>Tỷ lệ</th>
@@ -286,9 +334,9 @@ export function BaoCao() {
                 {fillRateByMonth.map((r) => (
                   <tr key={r.month}>
                     <td>{r.month}</td>
-                    <td>{r.total} m²</td>
-                    <td>{r.rented} m²</td>
-                    <td>{r.total - r.rented} m²</td>
+                    <td>{r.total} Pallet</td>
+                    <td>{r.rented} Pallet</td>
+                    <td>{r.total - r.rented} Pallet</td>
                     <td>{r.rate}%</td>
                   </tr>
                 ))}

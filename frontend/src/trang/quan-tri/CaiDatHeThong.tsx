@@ -1,11 +1,20 @@
-import { useState } from 'react';
-import { priceTable as seed, users } from '../../du-lieu/duLieuMau';
-import type { PriceRow } from '../../kieu';
+import { useState, useEffect } from 'react';
+import { priceTable as seed, accounts as seedAccounts } from '../../du-lieu/duLieuMau';
+import type { Account, PriceRow } from '../../kieu';
 import { areaTypeLabel, formatDate, formatMoney, roleLabel } from '../../thu-vien/dinhDang';
 
 export function CaiDatHeThong() {
   const [tab, setTab] = useState<'price' | 'roles'>('price');
   const [prices] = useState<PriceRow[]>(seed);
+  const [userAccounts, setUserAccounts] = useState<Account[]>(() => {
+    const raw = localStorage.getItem('mock_accounts');
+    return raw ? JSON.parse(raw) : seedAccounts;
+  });
+
+  useEffect(() => {
+    const raw = localStorage.getItem('mock_accounts');
+    if (raw) setUserAccounts(JSON.parse(raw));
+  }, []);
 
   return (
     <div>
@@ -73,7 +82,7 @@ export function CaiDatHeThong() {
                 </tr>
               </thead>
               <tbody>
-                {users
+                {userAccounts
                   .filter((u) => u.role !== 'customer')
                   .map((u) => {
                     const full = u.role === 'admin';

@@ -13,6 +13,9 @@ from app.models.invoice import Invoice
 from app.models.price import PriceRow
 from app.models.rental_request import RentalRequest
 from app.models.user import User
+from app.models.warehouse import Warehouse
+from app.models.billing_cycle import BillingCycle
+from app.models.user import User
 from app.security import hash_password
 
 
@@ -23,20 +26,24 @@ async def seed() -> None:
     for model in DOCUMENT_MODELS:
         await model.delete_all()
 
+    warehouse_main = await Warehouse(
+        code="WH-MAIN", name="Kho Tân Bình", location="Tân Bình, TP.HCM", total_capacity=2000, status="HoatDong"
+    ).insert()
+
     area_a01 = await Area(
-        code="KV-A01", name="Dãy A1", area_m2=100, type="Ke", status="DaThue",
+        code="KV-A01", name="Dãy A1", warehouse_id=str(warehouse_main.id), area_m2=100, type="Ke", status="DaThue",
         location="Khu kho · dãy trái", map=AreaMapPos(floor=1, row=1, col=1, row_span=2, col_span=2),
     ).insert()
     await Area(
-        code="KV-A02", name="Dãy A2", area_m2=80, type="Ke", status="Trong",
+        code="KV-A02", name="Dãy A2", warehouse_id=str(warehouse_main.id), area_m2=80, type="Ke", status="Trong",
         location="Khu kho · dãy trái", map=AreaMapPos(floor=1, row=3, col=1, row_span=2, col_span=2),
     ).insert()
     await Area(
-        code="KV-B01", name="Dãy B1", area_m2=60, type="Treo", status="DaThue",
+        code="KV-B01", name="Dãy B1", warehouse_id=str(warehouse_main.id), area_m2=60, type="Treo", status="DaThue",
         location="Khu kho · dãy giữa trái", map=AreaMapPos(floor=1, row=1, col=4, row_span=2, col_span=2),
     ).insert()
     area_c01 = await Area(
-        code="KV-C01", name="Kệ trung tâm 1", area_m2=50, type="KeVIP", status="DaThue",
+        code="KV-C01", name="Kệ trung tâm 1", warehouse_id=str(warehouse_main.id), area_m2=50, type="KeVIP", status="DaThue",
         location="Khu kho · dãy trung tâm", map=AreaMapPos(floor=1, row=1, col=7, row_span=2, col_span=2),
     ).insert()
 
@@ -84,6 +91,10 @@ async def seed() -> None:
         contract_id=str(contract_hd001.id), period="Tháng 8/2026",
         content="Tiền thuê tháng 8 - KV-A01", amount_before_tax=15500000, vat=1550000,
         total=17050000, due_date=date(2026, 8, 5), status="ChuaThanhToan", paid_amount=0,
+    ).insert()
+
+    await BillingCycle(
+        contract_id=str(contract_hd001.id), start_date=date(2026, 8, 1), end_date=date(2026, 8, 31), is_billed=True
     ).insert()
 
     await RentalRequest(

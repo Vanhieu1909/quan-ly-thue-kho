@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
-import { customers, invoices, transactions } from '../../du-lieu/duLieuMau';
+import { customers, invoices as seedInvoices, transactions } from '../../du-lieu/duLieuMau';
 import { formatMoney } from '../../thu-vien/dinhDang';
 import { TheThongKe } from '../../thanh-phan/TheThongKe';
 import { NhanTrangThaiThanhToan } from '../../thanh-phan/NhanTrangThai';
 
 /** Màn Kế toán trong cổng Admin — cùng chỉ số báo cáo, dữ liệu mock */
 export function KeToan() {
+  const invoices = (JSON.parse(localStorage.getItem('mock_invoices') || 'null') || seedInvoices) as typeof seedInvoices;
+  
   const unpaid = invoices
     .filter((i) => i.status !== 'DaThanhToan')
     .reduce((s, i) => s + (i.total - i.paidAmount), 0);
