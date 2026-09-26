@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { areas as seed } from '../../du-lieu/duLieuMau';
 import type { Area, AreaStatus, InspectionItem } from '../../kieu';
 import { areaStatusLabel } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiKhuVuc } from '../../thanh-phan/NhanTrangThai';
 import { BanDoKho } from '../../thanh-phan/BanDoKho';
+import { BangYeuCauTrangThaiKho } from '../../thanh-phan/BangYeuCauTrangThaiKho';
 
 export function KiemKeKho() {
   const [areas, setAreas] = useState<Area[]>(() => {
@@ -26,11 +27,41 @@ export function KiemKeKho() {
     return sourceAreas[0]?.id ?? null;
   });
   const [confirmed, setConfirmed] = useState(false);
+  const [reportModalAreaId, setReportModalAreaId] = useState<string | null>(null);
 
-  const statusById = Object.fromEntries(items.map((i) => [i.areaId, i.actualStatus])) as Record<
-    string,
-    AreaStatus
-  >;
+  const reloadFromStorage = () => {
+    const raw = localStorage.getItem('mock_areas');
+    const sourceAreas: Area[] = (raw && JSON.parse(raw).length > 0) ? JSON.parse(raw) : seed;
+    setAreas(sourceAreas);
+    setItems((prevItems) => {
+      return sourceAreas.map((a) => {
+        const existing = prevItems.find((it) => it.areaId === a.id);
+        const actualStatus = existing && existing.actualStatus !== existing.systemStatus
+          ? existing.actualStatus
+          : a.status;
+        return {
+          areaId: a.id,
+          systemStatus: a.status,
+          actualStatus: actualStatus,
+          match: a.status === actualStatus,
+        };
+      });
+    });
+  };
+
+  useEffect(() => {
+    reloadFromStorage();
+    window.addEventListener('storage', reloadFromStorage);
+    const interval = setInterval(reloadFromStorage, 2000);
+    return () => {
+      window.removeEventListener('storage', reloadFromStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const statusById = Object.fromEntries(
+    items.map((i) => [i.areaId, i.actualStatus])
+  ) as Record<string, AreaStatus>;
 
   function setActual(areaId: string, actualStatus: AreaStatus) {
     setItems((prev) =>
@@ -111,6 +142,12 @@ export function KiemKeKho() {
                     <label>Kết quả</label>
                     <strong style={{ fontSize: '1.2rem' }}>{selectedItem.match ? '✓ Khớp' : '✗ Chênh lệch'}</strong>
                   </div>
+                  {selectedArea.note && (
+                    <div className="detail-item" style={{ gridColumn: 'span 2' }}>
+                      <label>Ghi chú hệ thống</label>
+                      <strong style={{ color: '#d97706' }}>📝 {selectedArea.note}</strong>
+                    </div>
+                  )}
                 </div>
 
                 <div className="field">
@@ -129,9 +166,18 @@ export function KiemKeKho() {
                   </select>
                 </div>
 
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    className="btn btn-primary"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 16px' }}
+                    onClick={() => setReportModalAreaId(selectedArea.id)}
+                  >
+                    ⚠️ Báo lỗi & Gửi Admin duyệt cho kho {selectedArea.code}
+                  </button>
+                </div>
+
                 <p style={{ color: 'var(--muted)', fontSize: '0.85rem', margin: 0 }}>
-                  Đổi trạng thái thực tế nếu khác với hệ thống (đang trống / đang cho thuê / đang bảo dưỡng).
-                  Bản đồ bên trái cập nhật màu theo trạng thái bạn vừa ghi nhận.
+                  Đổi trạng thái thực tế nếu khác với hệ thống hoặc bấm nút trên để báo lỗi kho cho Admin phê duyệt.
                 </p>
               </div>
             )}
@@ -200,6 +246,14 @@ export function KiemKeKho() {
           </table>
         </div>
       </div>
+
+      <BangYeuCauTrangThaiKho
+        mode="staff"
+        areas={areas}
+        onAreaStatusUpdated={reloadFromStorage}
+        requestAreaId={reportModalAreaId}
+        onRequestModalClose={() => setReportModalAreaId(null)}
+      />
     </div>
   );
 }

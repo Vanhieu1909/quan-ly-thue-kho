@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Plus, Printer, CheckCircle } from 'lucide-react';
 import { contracts as seedContracts, customers as seedCustomers, invoices as seed, billingCycles as seedBillingCycles } from '../../du-lieu/duLieuMau';
 import type { Invoice, PaymentStatus } from '../../kieu';
-import { formatDate, formatMoney } from '../../thu-vien/dinhDang';
+import { formatDate, formatMoney, getVatRate, getVatPercentLabel } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiThanhToan } from '../../thanh-phan/NhanTrangThai';
 import { HopThoai } from '../../thanh-phan/HopThoai';
 
@@ -48,7 +48,7 @@ export function QuanLyHoaDon() {
   const amountBeforeTax = selectedContract
     ? selectedContract.monthlyRent + selectedContract.serviceFee
     : 0;
-  const vat = Math.round(amountBeforeTax * 0.1);
+  const vat = Math.round(amountBeforeTax * getVatRate());
   const total = amountBeforeTax + vat;
 
   const monthTotal = rows
@@ -155,8 +155,8 @@ export function QuanLyHoaDon() {
     };
     localStorage.setItem('mock_transactions', JSON.stringify([newTrans, ...allTrans]));
 
-    // Activate Contract if it was ChoHieuLuc and the invoice is now DaThanhToan
-    if (newStatus === 'DaThanhToan') {
+    // Activate Contract if it was ChoHieuLuc and deposit is paid or invoice is DaThanhToan
+    if (newStatus === 'DaThanhToan' || (deposit > 0 && newPaid >= deposit)) {
       const bc = billingCycles.find(b => b.id === payingInvoice.billingCycleId);
       const targetContractId = bc ? bc.contractId : payingInvoice.billingCycleId;
       const rawContracts = localStorage.getItem('mock_contracts');
@@ -426,7 +426,7 @@ export function QuanLyHoaDon() {
             <strong>{formatMoney(amountBeforeTax)}</strong>
           </div>
           <div className="row">
-            <span>Thuế GTGT 10%</span>
+            <span>Thuế GTGT ({getVatPercentLabel()})</span>
             <strong>{formatMoney(vat)}</strong>
           </div>
           <div className="row total">

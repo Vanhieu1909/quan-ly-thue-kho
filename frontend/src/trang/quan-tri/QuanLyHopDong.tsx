@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Plus, Eye } from 'lucide-react';
 import { areas as seedAreas, contracts as seed, customers, priceTable, invoices, billingCycles } from '../../du-lieu/duLieuMau';
 import type { Area, Contract, ContractStatus, PaymentCycle, Customer } from '../../kieu';
-import { areaTypeLabel, formatDate, formatMoney } from '../../thu-vien/dinhDang';
+import { areaTypeLabel, formatDate, formatMoney, getVatRate } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiHopDong } from '../../thanh-phan/NhanTrangThai';
 import { HopThoai } from '../../thanh-phan/HopThoai';
 import { BanDoKho } from '../../thanh-phan/BanDoKho';
@@ -34,6 +34,8 @@ export function QuanLyHopDong() {
     }
     return seed;
   });
+  const contractSectionRef = useRef<HTMLDivElement>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<ContractStatus | 'All'>('All');
   const [customerFilter, setCustomerFilter] = useState('All');
   const [open, setOpen] = useState(false);
@@ -174,7 +176,7 @@ export function QuanLyHopDong() {
     const rentAmount = monthlyRent + (Number(form.serviceFee) || 0);
     const depositAmt = Number(form.deposit) || 0;
     const amountBeforeTax = depositAmt + rentAmount;
-    const vat = Math.round(rentAmount * 0.1);
+    const vat = Math.round(rentAmount * getVatRate());
     const invoiceTotal = amountBeforeTax + vat;
 
     const newBc = {
@@ -275,17 +277,22 @@ export function QuanLyHopDong() {
           <BanDoKho
             areas={areas}
             mode="chon-thue"
-            choPhepChon={['Trong']}
-            title="Chọn trực tiếp ô trống để tạo hợp đồng"
+            selectedId={selectedId}
+            choPhepChon={['Trong', 'DaThue', 'BaoTri']}
+            title="Bản đồ kho — nhấp ô kho để xem danh sách hợp đồng hoặc tạo hợp đồng mới"
             onSelect={(area) => {
-              setForm((current) => ({ ...current, areaId: area.id }));
-              setOpen(true);
+              setSelectedId(area.id);
+              contractSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+              if (area.status === 'Trong') {
+                setForm((current) => ({ ...current, areaIds: [area.id] }));
+                setOpen(true);
+              }
             }}
           />
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" ref={contractSectionRef}>
         <div className="table-wrap">
           <table className="data">
             <thead>
@@ -448,7 +455,7 @@ export function QuanLyHopDong() {
         <div className="summary-box">
           <div className="row">
             <span>Đơn giá</span>
-            <strong>{formatMoney(unitPrice)}/m²/tháng</strong>
+            <strong>{formatMoney(unitPrice)}/{commonUnit}/tháng</strong>
           </div>
           <div className="row">
             <span>Tiền thuê</span>

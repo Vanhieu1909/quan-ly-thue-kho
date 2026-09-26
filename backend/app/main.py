@@ -5,6 +5,7 @@ from .config import settings
 from .database import init_db
 from .routers import (
     accounts,
+    area_status_requests,
     areas,
     auth,
     contracts,
@@ -41,6 +42,7 @@ async def health() -> dict:
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(accounts.router, prefix="/api/accounts", tags=["accounts"])
 app.include_router(areas.router, prefix="/api/areas", tags=["areas"])
+app.include_router(area_status_requests.router, prefix="/api/area-status-requests", tags=["area-status-requests"])
 app.include_router(customers.router, prefix="/api/customers", tags=["customers"])
 app.include_router(contracts.router, prefix="/api/contracts", tags=["contracts"])
 app.include_router(invoices.router, prefix="/api/invoices", tags=["invoices"])

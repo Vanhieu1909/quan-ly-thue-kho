@@ -63,14 +63,16 @@ export function ThanhToan() {
     .reduce((s, i) => {
       let payAmt = 0;
       const { deposit, rent } = getInvoiceBreakdown(i);
-      const correctTotal = deposit + rent + (rent * 0.1);
+      const vat = rent * 0.1;
+      const correctTotal = deposit + rent + vat;
+      const opt = payOptions[i.id] || (deposit > 0 ? 'DEPOSIT_ONLY' : 'FULL');
       
-      if (i.paidAmount === 0 && (payOptions[i.id] === 'SPLIT')) {
-        const splitAmtBeforeTax = deposit + (rent / 2);
-        const splitVat = (rent / 2) * 0.1; // VAT only on rent
-        payAmt = splitAmtBeforeTax + splitVat;
-      } else if (i.paidAmount === 0 && payOptions[i.id] === 'DEPOSIT_ONLY') {
-        payAmt = deposit;
+      if (i.paidAmount === 0) {
+        if (opt === 'DEPOSIT_ONLY' || opt === 'SPLIT') {
+          payAmt = deposit;
+        } else {
+          payAmt = correctTotal;
+        }
       } else {
         payAmt = correctTotal - i.paidAmount;
       }
@@ -85,7 +87,7 @@ export function ThanhToan() {
           <strong>{account?.name}</strong>
         </div>
         <div className="row">
-          <span>Số dư ước tính phải trả</span>
+          <span>Số dư ước tính phải trả đợt này</span>
           <strong style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{formatMoney(total)}</strong>
         </div>
       </div>
@@ -118,6 +120,8 @@ export function ThanhToan() {
                 <tbody>
                   {unpaid.map((i) => {
                     const { deposit, rent } = getInvoiceBreakdown(i);
+                    const vat = rent * 0.1;
+                    const correctTotal = deposit + rent + vat;
                     const isSelected = selected.includes(i.id);
                     return (
                       <tr key={i.id} style={{ opacity: isSelected ? 1 : 0.5 }}>
@@ -127,9 +131,9 @@ export function ThanhToan() {
                         <td style={{ whiteSpace: 'nowrap' }}>{i.number}<br/><span style={{ fontSize: '0.8rem', color: 'gray' }}>{i.period}</span></td>
                         <td style={{ whiteSpace: 'nowrap' }}>{formatMoney(deposit)}</td>
                         <td style={{ whiteSpace: 'nowrap' }}>{formatMoney(rent)}</td>
-                        <td style={{ whiteSpace: 'nowrap' }}>{formatMoney(i.vat)}</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{formatMoney(vat)}</td>
                         <td style={{ color: 'var(--ok)', whiteSpace: 'nowrap' }}>{formatMoney(i.paidAmount)}</td>
-                        <td style={{ color: 'var(--danger)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{formatMoney(i.total - i.paidAmount)}</td>
+                        <td style={{ color: 'var(--danger)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{formatMoney(correctTotal - i.paidAmount)}</td>
                       </tr>
                     );
                   })}
@@ -144,23 +148,59 @@ export function ThanhToan() {
             </div>
             <div className="panel-bd stack">
               {unpaid.filter(i => selected.includes(i.id)).map(i => {
-                const opt = payOptions[i.id] || 'FULL';
+                const { deposit, rent } = getInvoiceBreakdown(i);
+                const vat = rent * 0.1;
+                const correctTotal = deposit + rent + vat;
+                const opt = payOptions[i.id] || (deposit > 0 ? 'DEPOSIT_ONLY' : 'FULL');
+                
                 return (
-                  <div key={i.id} style={{ padding: 12, border: '1px solid var(--border)', borderRadius: 6 }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: 8 }}>Hóa đơn: {i.number}</div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <input type="radio" checked={opt === 'FULL'} onChange={() => setPayOptions(p => ({ ...p, [i.id]: 'FULL' }))} />
-                      Thanh toán toàn bộ (100% Tiền cọc + 100% Tiền thuê + Thuế)
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <input type="radio" disabled={i.paidAmount > 0} checked={opt === 'SPLIT' && i.paidAmount === 0} onChange={() => setPayOptions(p => ({ ...p, [i.id]: 'SPLIT' }))} />
-                      Thanh toán 2 đợt (100% Tiền cọc + 50% Tiền thuê đợt 1 + Thuế tương ứng)
-                      {i.paidAmount > 0 && <span style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>(Đã thanh toán một phần, nay thanh toán nốt)</span>}
-                    </label>
-                    {getInvoiceBreakdown(i).deposit > 0 && (
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <input type="radio" disabled={i.paidAmount > 0} checked={opt === 'DEPOSIT_ONLY' && i.paidAmount === 0} onChange={() => setPayOptions(p => ({ ...p, [i.id]: 'DEPOSIT_ONLY' }))} />
-                        Chỉ thanh toán tiền cọc (100% Tiền cọc)
+                  <div key={i.id} style={{ padding: 16, border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-card, #fff)' }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: 12, fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
+                      Hóa đơn: {i.number}
+                    </div>
+                    {i.paidAmount > 0 ? (
+                      <div style={{ padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6 }}>
+                        <div style={{ color: 'var(--ok)', fontWeight: 'bold', marginBottom: 4 }}>
+                          ✓ Đã thanh toán tiền cọc: {formatMoney(i.paidAmount)}
+                        </div>
+                        <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
+                          ➜ Thanh toán tiền thuê kho & thuế VAT còn lại: {formatMoney(correctTotal - i.paidAmount)}
+                        </div>
+                      </div>
+                    ) : deposit > 0 ? (
+                      <div className="stack" style={{ gap: 10 }}>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: 8, borderRadius: 6, border: opt === 'FULL' ? '1px solid var(--primary)' : '1px solid transparent', background: opt === 'FULL' ? 'var(--bg-subtle, #f0fdf4)' : 'transparent' }}>
+                          <input
+                            type="radio"
+                            name={`pay_opt_${i.id}`}
+                            checked={opt === 'FULL'}
+                            onChange={() => setPayOptions(p => ({ ...p, [i.id]: 'FULL' }))}
+                            style={{ marginTop: 3 }}
+                          />
+                          <div>
+                            <strong>Thanh toán toàn bộ</strong> (100% Tiền cọc + 100% Tiền thuê & Dịch vụ + Thuế VAT = {formatMoney(correctTotal)})
+                          </div>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: 8, borderRadius: 6, border: (opt === 'DEPOSIT_ONLY' || opt === 'SPLIT') ? '1px solid var(--primary)' : '1px solid transparent', background: (opt === 'DEPOSIT_ONLY' || opt === 'SPLIT') ? 'var(--bg-subtle, #f0fdf4)' : 'transparent' }}>
+                          <input
+                            type="radio"
+                            name={`pay_opt_${i.id}`}
+                            checked={opt === 'DEPOSIT_ONLY' || opt === 'SPLIT'}
+                            onChange={() => setPayOptions(p => ({ ...p, [i.id]: 'DEPOSIT_ONLY' }))}
+                            style={{ marginTop: 3 }}
+                          />
+                          <div>
+                            <strong>Thanh toán tiền cọc</strong> (100% Tiền cọc = {formatMoney(deposit)} để giữ chỗ & kích hoạt hợp đồng)
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 4 }}>
+                              * Tiền thuê kho & thuế VAT ({formatMoney(rent + vat)}) sẽ thanh toán trước khi nhận bàn giao kho.
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                        <input type="radio" checked readOnly />
+                        <span><strong>Thanh toán toàn bộ</strong> ({formatMoney(correctTotal)})</span>
                       </label>
                     )}
                   </div>
@@ -196,24 +236,17 @@ export function ThanhToan() {
                 <div className="row" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px dotted var(--border)' }}>
                   <span>Tổng giá trị hóa đơn</span>
                   <strong>{formatMoney(unpaid.filter(i => selected.includes(i.id)).reduce((s, i) => {
-                     const { rent } = getInvoiceBreakdown(i);
-                     return s + (i.amountBeforeTax + rent * 0.1);
+                     const { deposit, rent } = getInvoiceBreakdown(i);
+                     return s + deposit + rent + (rent * 0.1);
                   }, 0))}</strong>
                 </div>
                 <hr style={{ margin: '12px 0', border: 'none', borderTop: '1px dashed var(--border)' }} />
-                <div className="row">
-                  <span>Tiền đã đặt cọc / Đã thanh toán đợt 1</span>
-                  <strong style={{ color: 'var(--ok)' }}>{formatMoney(unpaid.filter(i => selected.includes(i.id)).reduce((s, i) => s + i.paidAmount, 0))}</strong>
-                </div>
-                <div className="row">
-                  <span>Số tiền còn nợ lại</span>
-                  <strong style={{ color: 'var(--danger)' }}>{formatMoney(unpaid.filter(i => selected.includes(i.id)).reduce((s, i) => {
-                     const { rent } = getInvoiceBreakdown(i);
-                     const correctTotal = i.amountBeforeTax + rent * 0.1;
-                     return s + (correctTotal - i.paidAmount);
-                  }, 0))}</strong>
-                </div>
-                <hr style={{ margin: '12px 0', border: 'none', borderTop: '1px dashed var(--border)' }} />
+                {unpaid.filter(i => selected.includes(i.id)).some(i => i.paidAmount > 0) && (
+                  <div className="row">
+                    <span>Tiền đã đặt cọc / Đã thanh toán trước</span>
+                    <strong style={{ color: 'var(--ok)' }}>{formatMoney(unpaid.filter(i => selected.includes(i.id)).reduce((s, i) => s + i.paidAmount, 0))}</strong>
+                  </div>
+                )}
                 <div className="row total">
                   <span>SỐ TIỀN CẦN THANH TOÁN ĐỢT NÀY</span>
                   <strong style={{ fontSize: '1.3rem', color: 'var(--primary)' }}>{formatMoney(total)}</strong>

@@ -13,6 +13,7 @@ from .models.transaction import Transaction
 from .models.account import Account
 from .models.warehouse import Warehouse
 from .models.billing_cycle import BillingCycle
+from .models.area_status_request import AreaStatusRequest
 
 DOCUMENT_MODELS = [
     Account,
@@ -26,6 +27,7 @@ DOCUMENT_MODELS = [
     Inspection,
     Warehouse,
     BillingCycle,
+    AreaStatusRequest,
 ]
 
 

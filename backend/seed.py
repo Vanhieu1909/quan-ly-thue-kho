@@ -1,5 +1,5 @@
 import asyncio
-from datetime import date
+from datetime import date, datetime
 
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -15,6 +15,7 @@ from app.models.rental_request import RentalRequest
 from app.models.account import Account
 from app.models.warehouse import Warehouse
 from app.models.billing_cycle import BillingCycle
+from app.models.area_status_request import AreaStatusRequest
 from app.security import hash_password
 
 
@@ -30,7 +31,7 @@ async def seed() -> None:
     ).insert()
 
     area_a01 = await Area(
-        code="KV-A01", name="Dãy A1", warehouse_id=str(warehouse_main.id), area_m2=100, type="Ke", status="DaThue",
+        code="KV-A01", name="Dãy A1", warehouse_id=str(warehouse_main.id), area_m2=100, type="Ke", status="Trong",
         location="Khu kho · dãy trái", map=AreaMapPos(floor=1, row=1, col=1, row_span=2, col_span=2),
     ).insert()
     await Area(
@@ -38,11 +39,11 @@ async def seed() -> None:
         location="Khu kho · dãy trái", map=AreaMapPos(floor=1, row=3, col=1, row_span=2, col_span=2),
     ).insert()
     await Area(
-        code="KV-B01", name="Dãy B1", warehouse_id=str(warehouse_main.id), area_m2=60, type="Treo", status="DaThue",
+        code="KV-B01", name="Dãy B1", warehouse_id=str(warehouse_main.id), area_m2=60, type="Treo", status="Trong",
         location="Khu kho · dãy giữa trái", map=AreaMapPos(floor=1, row=1, col=4, row_span=2, col_span=2),
     ).insert()
     area_c01 = await Area(
-        code="KV-C01", name="Kệ trung tâm 1", warehouse_id=str(warehouse_main.id), area_m2=50, type="KeVIP", status="DaThue",
+        code="KV-C01", name="Kệ trung tâm 1", warehouse_id=str(warehouse_main.id), area_m2=50, type="KeVIP", status="Trong",
         location="Khu kho · dãy trung tâm", map=AreaMapPos(floor=1, row=1, col=7, row_span=2, col_span=2),
     ).insert()
 
@@ -116,8 +117,10 @@ async def seed() -> None:
         status="DangApDung",
     ).insert()
 
-    print("Đã seed dữ liệu mẫu.")
-    print("Tài khoản đăng nhập (mật khẩu 123456): admin, staff, ketoan, 0901234567")
+
+
+    print("Seed data finished successfully.")
+    print("Default accounts (password 123456): admin, staff, ketoan, 0901234567")
 
 
 if __name__ == "__main__":

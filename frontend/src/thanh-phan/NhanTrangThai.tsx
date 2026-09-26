@@ -13,7 +13,14 @@ function Nhan({ tone, children }: { tone: Tone; children: string }) {
 }
 
 export function NhanTrangThaiKhuVuc({ status }: { status: AreaStatus }) {
-  const tone: Tone = status === 'Trong' ? 'ok' : status === 'DaThue' ? 'info' : 'warn';
+  const tone: Tone =
+    status === 'Trong'
+      ? 'ok'
+      : status === 'DaThue'
+      ? 'info'
+      : status === 'LoiChoXacNhan'
+      ? 'danger'
+      : 'warn';
   return <Nhan tone={tone}>{areaStatusLabel[status]}</Nhan>;
 }
 

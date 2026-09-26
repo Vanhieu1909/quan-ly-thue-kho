@@ -16,9 +16,10 @@ interface BanDoKhoProps {
   title?: string;
   /** Chỉ cho chọn các ô có status trong danh sách (vd: ['Trong'] khi thuê) */
   choPhepChon?: AreaStatus[];
+  onLegendLoiClick?: () => void;
 }
 
-const FLOOR_ROWS = 12;
+
 
 export function BanDoKho({
   areas,
@@ -29,6 +30,7 @@ export function BanDoKho({
   mode = 'xem',
   title = 'Bản đồ kho',
   choPhepChon,
+  onLegendLoiClick,
 }: BanDoKhoProps) {
   const tenantMap = useMemo(() => {
     try {
@@ -64,6 +66,9 @@ export function BanDoKho({
   const floor = floors[0] ?? 1;
   const onFloor = areas.filter((a) => a.map.floor === floor);
 
+  // 10 warehouse rows * 2 grid spans = 20 grid rows (A1..A10)
+  const maxRow = 20;
+
   function statusOf(a: Area): AreaStatus {
     return statusById?.[a.id] ?? a.status;
   }
@@ -88,6 +93,7 @@ export function BanDoKho({
     Trong: areas.filter((a) => statusOf(a) === 'Trong').length,
     DaThue: areas.filter((a) => statusOf(a) === 'DaThue').length,
     BaoTri: areas.filter((a) => statusOf(a) === 'BaoTri').length,
+    LoiChoXacNhan: areas.filter((a) => statusOf(a) === 'LoiChoXacNhan').length,
   };
 
   return (
@@ -108,6 +114,16 @@ export function BanDoKho({
         <span className="lg lg-trong">Đang trống ({counts.Trong})</span>
         <span className="lg lg-thue">Đang cho thuê ({counts.DaThue})</span>
         <span className="lg lg-baotri">Đang bảo dưỡng ({counts.BaoTri})</span>
+        {counts.LoiChoXacNhan > 0 && (
+          <span
+            className="lg lg-loichoxacnhan"
+            style={{ fontWeight: 700, cursor: onLegendLoiClick ? 'pointer' : undefined }}
+            onClick={onLegendLoiClick}
+            title="Bấm vào đây để di chuyển xuống bảng Phê duyệt"
+          >
+            🔴 Lỗi đang chờ xác nhận ({counts.LoiChoXacNhan})
+          </span>
+        )}
       </div>
 
       <div className="ban-do-kho__stage">
@@ -115,8 +131,9 @@ export function BanDoKho({
         <div
           className="ban-do-kho__grid"
           style={{
-            gridTemplateColumns: `repeat(14, 1fr)`,
-            gridTemplateRows: `repeat(${FLOOR_ROWS}, minmax(54px, 1fr))`,
+            gridTemplateColumns: `repeat(15, 1fr)`,
+            gridTemplateRows: `repeat(${maxRow}, minmax(54px, auto))`,
+            minHeight: 'auto',
           }}
         >
           {onFloor.map((a) => {
@@ -124,11 +141,11 @@ export function BanDoKho({
             const selectable = coTheChon(a);
             const selected = selectedIds ? selectedIds.includes(a.id) : selectedId === a.id;
             
-            // 2 Paths: Between A & B (col 4), and C & D (col 11)
+            // 3 Paths: Between A & B (col 4), B & C (col 8), and C & D (col 12)
             let displayCol = a.map.col;
-            if (a.map.col === 4) displayCol = 5;       // B shifted by 1
-            else if (a.map.col === 7) displayCol = 8;  // C shifted by 1 (glued to B)
-            else if (a.map.col === 10) displayCol = 12; // D shifted by 2
+            if (a.map.col === 4) displayCol = 5;       // B shifted by 1 (cols 5..7)
+            else if (a.map.col === 7) displayCol = 9;  // C shifted by 2 (cols 9..11)
+            else if (a.map.col === 10) displayCol = 13; // D shifted by 3 (cols 13..15)
 
             return (
               <button
@@ -161,30 +178,71 @@ export function BanDoKho({
                     ? (tenantMap[a.id].status === 'ChoHieuLuc' ? `Chờ cọc (${tenantMap[a.id].name})` : `Đang thuê (${tenantMap[a.id].name})`) 
                     : areaStatusLabel[st]}
                 </span>
+                {a.note && (
+                  <span
+                    className="ban-do-o__note"
+                    title={a.note}
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      color: '#92400e',
+                      backgroundColor: '#fef3c7',
+                      border: '1px solid #fde68a',
+                      borderRadius: '4px',
+                      padding: '1px 4px',
+                      marginTop: '3px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: 'block',
+                      maxWidth: '100%',
+                    }}
+                  >
+                    📝 {a.note}
+                  </span>
+                )}
               </button>
             );
           })}
 
-          {[4, 11].map(col => (
+          {[4, 8, 12].map((col) => (
             <div
               key={`aisle-${col}`}
               style={{
-                gridRow: `1 / span ${FLOOR_ROWS}`,
+                gridRow: `1 / span ${maxRow}`,
                 gridColumn: col,
-                backgroundColor: '#e2e8f0', // distinct gray-blue color
-                border: '2px dashed #94a3b8',
+                background: 'linear-gradient(180deg, #f8fafc 0%, #edf2f7 50%, #f8fafc 100%)',
+                borderLeft: '2px dashed #cbd5e1',
+                borderRight: '2px dashed #cbd5e1',
+                borderTop: 'none',
+                borderBottom: 'none',
+                borderRadius: 6,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#475569',
-                writingMode: 'vertical-rl',
-                textOrientation: 'upright',
-                letterSpacing: 8,
-                borderRadius: 8,
-                fontWeight: 'bold'
+                gap: 10,
+                color: '#64748b',
+                userSelect: 'none',
+                padding: '10px 0',
+                boxShadow: 'inset 0 0 6px rgba(0, 0, 0, 0.02)',
               }}
             >
-              LỐI ĐI
+              <span style={{ fontSize: '0.75rem', opacity: 0.65 }}>🚶</span>
+              <span
+                style={{
+                  writingMode: 'vertical-rl',
+                  textOrientation: 'upright',
+                  letterSpacing: '0.35em',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                }}
+              >
+                LỐI ĐI
+              </span>
+              <span style={{ fontSize: '0.75rem', opacity: 0.65 }}>🚶</span>
             </div>
           ))}
         </div>

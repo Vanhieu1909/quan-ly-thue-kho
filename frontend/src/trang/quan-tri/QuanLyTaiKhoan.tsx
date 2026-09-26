@@ -188,7 +188,7 @@ export function QuanLyTaiKhoan() {
             <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} disabled={isEdit} />
           </div>
           <div className="field">
-            <label>Mật khẩu {isEdit ? '(Để trống nếu không đổi)' : '<span className="req">*</span>'}</label>
+            <label>Mật khẩu {isEdit ? '(Để trống nếu không đổi)' : <span className="req">*</span>}</label>
             <input type="password" value={form.passwordHash} onChange={(e) => setForm({ ...form, passwordHash: e.target.value })} placeholder={isEdit ? '••••••••' : ''} />
           </div>
         </div>

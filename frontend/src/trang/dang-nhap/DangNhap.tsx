@@ -12,7 +12,7 @@ const homeByRole: Record<Role, string> = {
 };
 
 export function DangNhap() {
-  const { account, login, switchRoleDemo } = dungXacThuc();
+  const { account, login } = dungXacThuc();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

@@ -1,6 +1,6 @@
-if (!localStorage.getItem('cleared_mock_data_v3')) {
+if (!localStorage.getItem('cleared_mock_data_v5')) {
   localStorage.clear();
-  localStorage.setItem('cleared_mock_data_v3', 'true');
+  localStorage.setItem('cleared_mock_data_v5', 'true');
 }
 
 import { StrictMode } from 'react';

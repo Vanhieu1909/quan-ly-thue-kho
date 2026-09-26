@@ -79,6 +79,8 @@ function AdminShell() {
     '/admin/rental-requests': 'Phê duyệt yêu cầu thuê',
   };
   const [pendingReqCount, setPendingReqCount] = useState(0);
+  const [pendingAreaStatusCount, setPendingAreaStatusCount] = useState(0);
+
   useEffect(() => {
     const checkCount = () => {
       try {
@@ -86,6 +88,11 @@ function AdminShell() {
         if (raw) {
           const reqs = JSON.parse(raw);
           setPendingReqCount(reqs.filter((r: any) => r.status === 'Moi' || r.status === 'DaTiepNhan').length);
+        }
+        const areaStatusRaw = localStorage.getItem('thue-kho-area-status-requests');
+        if (areaStatusRaw) {
+          const areaReqs = JSON.parse(areaStatusRaw);
+          setPendingAreaStatusCount(areaReqs.filter((r: any) => r.status === 'ChoDuyet').length);
         }
       } catch {}
     };
@@ -100,7 +107,7 @@ function AdminShell() {
 
   const nav: MucDieuHuong[] = [
     { to: '/admin', label: 'Tổng quan', icon: LayoutDashboard },
-    { to: '/admin/areas', label: 'Quản lý kho', icon: Warehouse },
+    { to: '/admin/areas', label: 'Quản lý kho', icon: Warehouse, badge: pendingAreaStatusCount },
     { to: '/admin/customers', label: 'Khách hàng', icon: Users },
     { to: '/admin/contracts', label: 'Hợp đồng', icon: FileText },
     { to: '/admin/rental-requests', label: 'Duyệt yêu cầu thuê', icon: Inbox, badge: pendingReqCount },

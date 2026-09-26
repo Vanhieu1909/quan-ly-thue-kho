@@ -23,6 +23,22 @@ export function formatShortMoney(value: number): string {
   return String(value);
 }
 
+export function getVatRate(): number {
+  try {
+    const saved = localStorage.getItem('mock_vat_rate');
+    if (saved) {
+      const val = Number(saved);
+      if (!isNaN(val) && val > 0) return val;
+    }
+  } catch {}
+  return 0.1; // Default 10%
+}
+
+export function getVatPercentLabel(): string {
+  const rate = getVatRate();
+  return `${Math.round(rate * 100)}%`;
+}
+
 export const roleLabel: Record<Role, string> = {
   admin: 'Quản trị viên',
   staff: 'Nhân viên kho',
@@ -31,15 +47,16 @@ export const roleLabel: Record<Role, string> = {
 };
 
 export const areaTypeLabel: Record<AreaType, string> = {
-  Ke: 'Sàn có sẵn kệ',
-  Treo: 'Sàn có giá treo',
-  KeVIP: 'Sàn có kệ VIP',
+  Ke: 'Sàn kho chứa Pallet (Kệ chứa hàng)',
+  Treo: 'Sàn kho tiêu chuẩn',
+  KeVIP: 'Sàn kho đặc biệt',
 };
 
 export const areaStatusLabel: Record<AreaStatus, string> = {
   Trong: 'Đang trống',
   DaThue: 'Đang cho thuê',
   BaoTri: 'Đang bảo dưỡng',
+  LoiChoXacNhan: 'Lỗi — Chờ xác nhận',
 };
 
 export const contractStatusLabel: Record<ContractStatus, string> = {

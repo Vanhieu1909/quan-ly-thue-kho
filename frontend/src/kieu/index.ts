@@ -1,7 +1,7 @@
 export type Role = 'admin' | 'staff' | 'accountant' | 'customer';
 
 export type AreaType = 'Ke' | 'Treo' | 'KeVIP';
-export type AreaStatus = 'Trong' | 'DaThue' | 'BaoTri';
+export type AreaStatus = 'Trong' | 'DaThue' | 'BaoTri' | 'LoiChoXacNhan';
 export type ContractStatus =
   | 'ChoHieuLuc'
   | 'DangHieuLuc'
@@ -181,4 +181,21 @@ export interface Inspection {
   date: string;
   items: InspectionItem[];
   confirmed: boolean;
+}
+
+export interface AreaStatusRequest {
+  id: string;
+  code: string;
+  areaId: string;
+  areaCode: string;
+  areaName: string;
+  currentStatus: AreaStatus;
+  targetStatus: AreaStatus;
+  reason: string;
+  requestedBy: string;
+  requestedAt: string;
+  status: 'ChoDuyet' | 'DaDuyet' | 'TuChoi';
+  reviewedBy?: string;
+  reviewedAt?: string;
+  adminNote?: string;
 }

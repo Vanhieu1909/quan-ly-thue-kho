@@ -15,19 +15,11 @@ import {
   customers as seedCustomers,
   fillRateByMonth,
   invoices as seedInvoices,
-  revenueByMonth,
   transactions as seedTransactions,
 } from '../../du-lieu/duLieuMau';
 import { formatMoney } from '../../thu-vien/dinhDang';
 import { BangDieuKhien } from '../../thanh-phan/TheThongKe';
 
-const expensePie = [
-  { name: 'Điện nước', value: 8.5 },
-  { name: 'Bảo trì', value: 4.2 },
-  { name: 'Bảo vệ', value: 12 },
-  { name: 'Vệ sinh', value: 3.5 },
-  { name: 'Khác', value: 2 },
-];
 const COLORS = ['#1f6b5a', '#d4a017', '#3d4a5c', '#6b7a8d', '#b45309'];
 
 export function BaoCao() {
@@ -93,7 +85,7 @@ export function BaoCao() {
                 <BarChart 
                   data={(() => {
                     const today = new Date();
-                    const months = [];
+                    const months: { month: string; year: number; revenue: number }[] = [];
                     for (let i = 5; i >= 0; i--) {
                       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                       months.push({ month: `T${d.getMonth() + 1}`, year: d.getFullYear(), revenue: 0 });
@@ -240,7 +232,7 @@ export function BaoCao() {
                 <tbody>
                   {(() => {
                     const today = new Date();
-                    const months = [];
+                    const months: { label: string; m: number; y: number; thu: number; chi: number }[] = [];
                     for (let i = 2; i >= 0; i--) {
                       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                       months.push({ label: `T${d.getMonth() + 1}`, m: d.getMonth() + 1, y: d.getFullYear(), thu: 0, chi: 0 });

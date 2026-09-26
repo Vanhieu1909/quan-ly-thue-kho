@@ -33,14 +33,15 @@ export function QuanLyKhachHang() {
   const enhancedRows = useMemo(() => {
     return rows.map(c => {
       // Calculate active rented capacity
-      const activeContracts = contracts.filter(ct => ct.customerId === c.id && ct.status === 'DangHieuLuc');
+      const activeContracts = contracts.filter(ct => ct.customerId === c.id && (ct.status === 'DangHieuLuc' || ct.status === 'ChoHieuLuc'));
       const capacityGroups = activeContracts.reduce((acc, ct) => {
-        acc[ct.rentalUnit] = (acc[ct.rentalUnit] || 0) + Number(ct.capacity);
+        const unit = ct.rentalUnit || 'Pallet';
+        acc[unit] = (acc[unit] || 0) + Number(ct.capacity || 0);
         return acc;
       }, {} as Record<string, number>);
       
       const rentedTexts = Object.entries(capacityGroups).map(([unit, val]) => `${val} ${unit}`);
-      const rentedText = rentedTexts.length > 0 ? rentedTexts.join(', ') : '0 m²';
+      const rentedText = rentedTexts.length > 0 ? rentedTexts.join(', ') : '0 Pallet';
       
       // Calculate debt
       const custInvoices = invoices.filter(i => i.customerId === c.id);
@@ -118,7 +119,7 @@ export function QuanLyKhachHang() {
                 <th>Mã KH</th>
                 <th>Tên khách hàng</th>
                 <th>Liên hệ</th>
-                <th>Sức chứa / Diện tích</th>
+                <th>Sức chứa / Số lượng thuê</th>
                 <th>Số dư công nợ</th>
                 <th>Trạng thái</th>
                 <th>Thao tác</th>

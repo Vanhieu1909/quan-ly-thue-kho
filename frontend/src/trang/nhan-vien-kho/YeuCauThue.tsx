@@ -193,8 +193,19 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
         }
       >
         <div className="field">
-          <label>Ghi chú</label>
-          <textarea rows={4} value={note} onChange={(e) => setNote(e.target.value)} />
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Ghi chú</span>
+            <span style={{ fontSize: '0.8rem', color: (note || '').length >= 200 ? '#b91c1c' : 'var(--muted)' }}>
+              {(note || '').length}/200 ký tự
+            </span>
+          </label>
+          <textarea
+            rows={4}
+            maxLength={200}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Nhập ghi chú (tối đa 200 ký tự)..."
+          />
         </div>
       </HopThoai>
     </div>

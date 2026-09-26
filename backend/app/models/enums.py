@@ -2,7 +2,7 @@ from typing import Literal
 
 Role = Literal["admin", "staff", "accountant", "customer"]
 AreaType = Literal["Ke", "Treo", "KeVIP", "STANDARD", "COLD", "HAZARDOUS"]
-AreaStatus = Literal["Trong", "DaThue", "BaoTri"]
+AreaStatus = Literal["Trong", "DaThue", "BaoTri", "LoiChoXacNhan"]
 ContractStatus = Literal[
     "ChoHieuLuc", "DangHieuLuc", "SapHetHan", "DaGiaHan", "DaKetThuc", "DaHuy"
 ]

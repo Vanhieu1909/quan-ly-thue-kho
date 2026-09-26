@@ -86,9 +86,7 @@ export const transactions: Transaction[] = [];
 export const rentalRequests: RentalRequest[] = [];
 
 export const priceTable: PriceRow[] = [
-  { id: 'p1', type: 'Ke', unitPrice: 150000, unit: 'đồng/m²/tháng', effectiveFrom: '2026-01-01', status: 'DangApDung' },
-  { id: 'p2', type: 'Treo', unitPrice: 200000, unit: 'đồng/m²/tháng', effectiveFrom: '2026-01-01', status: 'DangApDung' },
-  { id: 'p3', type: 'KeVIP', unitPrice: 250000, unit: 'đồng/m²/tháng', effectiveFrom: '2026-01-01', status: 'DangApDung' },
+  { id: 'p1', type: 'Ke', unitPrice: 120000, unit: 'đồng/Pallet/tháng', effectiveFrom: '2026-01-01', status: 'DangApDung' },
 ];
 
 export const inspections: Inspection[] = [

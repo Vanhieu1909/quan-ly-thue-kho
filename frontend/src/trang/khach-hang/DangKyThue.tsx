@@ -188,8 +188,19 @@ export function DangKyThue() {
             </div>
           )}
           <div className="field">
-            <label>Ghi chú</label>
-            <textarea rows={3} value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="Yêu cầu về vị trí, điều hòa..." />
+            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Ghi chú</span>
+              <span style={{ fontSize: '0.8rem', color: (form.note || '').length >= 200 ? '#b91c1c' : 'var(--muted)' }}>
+                {(form.note || '').length}/200 ký tự
+              </span>
+            </label>
+            <textarea
+              rows={3}
+              maxLength={200}
+              value={form.note}
+              onChange={(event) => setForm({ ...form, note: event.target.value })}
+              placeholder="Yêu cầu về vị trí, điều hòa... (tối đa 200 ký tự)"
+            />
           </div>
           <div>
             <button className="btn btn-primary" onClick={guiYeuCau}>Gửi yêu cầu thuê</button>

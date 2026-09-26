@@ -1,14 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { areas as seed } from '../../du-lieu/duLieuMau';
 import type { Area, AreaStatus } from '../../kieu';
 import { areaTypeLabel } from '../../thu-vien/dinhDang';
 import { NhanTrangThaiKhuVuc } from '../../thanh-phan/NhanTrangThai';
 import { BanDoKho } from '../../thanh-phan/BanDoKho';
+import { BangYeuCauTrangThaiKho } from '../../thanh-phan/BangYeuCauTrangThaiKho';
 
 export function QuanLyKhuVuc() {
-  const [areas, setAreas] = useState<Area[]>(seed);
+  const [areas, setAreas] = useState<Area[]>(() => {
+    const raw = localStorage.getItem('mock_areas');
+    return raw ? JSON.parse(raw) : seed;
+  });
   const [statusFilter, setStatusFilter] = useState<AreaStatus | 'All'>('All');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reportModalAreaId, setReportModalAreaId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAreas = () => {
+      const raw = localStorage.getItem('mock_areas');
+      if (raw) setAreas(JSON.parse(raw));
+    };
+    window.addEventListener('storage', loadAreas);
+    return () => window.removeEventListener('storage', loadAreas);
+  }, []);
 
   const filtered = useMemo(
     () => (statusFilter === 'All' ? areas : areas.filter((a) => a.status === statusFilter)),
@@ -28,7 +42,7 @@ export function QuanLyKhuVuc() {
             mode="kiem-ke"
             selectedId={selectedId}
             onSelect={(a) => setSelectedId(a.id)}
-            title="Bản đồ kho — chọn ô rồi cập nhật trạng thái"
+            title="Bản đồ kho — chọn ô rồi cập nhật trạng thái hoặc báo lỗi"
           />
         </div>
       </div>
@@ -51,6 +65,13 @@ export function QuanLyKhuVuc() {
                   <option value="DaThue">Đang cho thuê</option>
                   <option value="BaoTri">Đang bảo dưỡng</option>
                 </select>
+
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setReportModalAreaId(a.id)}
+                >
+                  ⚠️ Báo lỗi kho {a.code} (Gửi Admin duyệt)
+                </button>
               </div>
             );
           })()}
@@ -64,6 +85,7 @@ export function QuanLyKhuVuc() {
             <option value="Trong">Đang trống</option>
             <option value="DaThue">Đang cho thuê</option>
             <option value="BaoTri">Đang bảo dưỡng</option>
+            <option value="LoiChoXacNhan">🔴 Lỗi đang chờ xác nhận</option>
           </select>
         </div>
       </div>
@@ -80,7 +102,7 @@ export function QuanLyKhuVuc() {
                 <th>Loại</th>
                 <th>Tầng</th>
                 <th>Trạng thái</th>
-                <th>Cập nhật</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -100,16 +122,29 @@ export function QuanLyKhuVuc() {
                     <NhanTrangThaiKhuVuc status={a.status} />
                   </td>
                   <td>
-                    <select
-                      className="filter-select"
-                      style={{ minWidth: 150 }}
-                      value={a.status}
-                      onChange={(e) => updateStatus(a.id, e.target.value as AreaStatus)}
-                    >
-                      <option value="Trong">Đang trống</option>
-                      <option value="DaThue">Đang cho thuê</option>
-                      <option value="BaoTri">Đang bảo dưỡng</option>
-                    </select>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <select
+                        className="filter-select"
+                        style={{ minWidth: 140 }}
+                        value={a.status}
+                        onChange={(e) => updateStatus(a.id, e.target.value as AreaStatus)}
+                      >
+                        <option value="Trong">Đang trống</option>
+                        <option value="DaThue">Đang cho thuê</option>
+                        <option value="BaoTri">Đang bảo dưỡng</option>
+                      </select>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+                        title="Báo lỗi kho này gửi Admin phê duyệt"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReportModalAreaId(a.id);
+                        }}
+                      >
+                        ⚠️ Báo lỗi
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -117,6 +152,14 @@ export function QuanLyKhuVuc() {
           </table>
         </div>
       </div>
+
+      {/* Yêu cầu cập nhật trạng thái kho & Báo lỗi kho cho Admin duyệt */}
+      <BangYeuCauTrangThaiKho
+        mode="staff"
+        areas={areas}
+        requestAreaId={reportModalAreaId}
+        onRequestModalClose={() => setReportModalAreaId(null)}
+      />
     </div>
   );
 }
