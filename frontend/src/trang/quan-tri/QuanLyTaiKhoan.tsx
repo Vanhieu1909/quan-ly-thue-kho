@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Lock, LockOpen } from 'lucide-react';
 import type { Account, Role } from '../../kieu';
 import { roleLabel } from '../../thu-vien/dinhDang';
 import { HopThoai } from '../../thanh-phan/HopThoai';
@@ -83,8 +83,20 @@ export function QuanLyTaiKhoan() {
   }
 
   function toggleStatus(id: string) {
+    if (id === 'a1') return; // Cannot lock default admin
     const updated = rows.map(r => r.id === id ? { ...r, status: r.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' } as Account : r);
     saveToLocal(updated);
+  }
+
+  function deleteAccount(id: string) {
+    if (id === 'a1') {
+      alert('Không thể xóa tài khoản Quản trị viên mặc định.');
+      return;
+    }
+    if (confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
+      const updated = rows.filter(r => r.id !== id);
+      saveToLocal(updated);
+    }
   }
 
   return (
@@ -140,6 +152,9 @@ export function QuanLyTaiKhoan() {
                         <Pencil size={14} />
                       </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => toggleStatus(c.id)} title={c.status === 'ACTIVE' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
+                        {c.status === 'ACTIVE' ? <Lock size={14} /> : <LockOpen size={14} />}
+                      </button>
+                      <button className="btn btn-ghost btn-sm btn-danger" onClick={() => deleteAccount(c.id)} title="Xóa tài khoản">
                         <Trash2 size={14} />
                       </button>
                     </div>

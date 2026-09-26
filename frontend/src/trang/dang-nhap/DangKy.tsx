@@ -28,8 +28,7 @@ export function DangKy() {
     <div className="auth-page" style={{ gridTemplateColumns: '1fr' }}>
       <div className="auth-panel">
         <div className="auth-card" style={{ width: 'min(480px, 100%)' }}>
-          <h2>Đăng ký tài khoản</h2>
-          <p className="sub">Đăng ký tài khoản khách hàng mới</p>
+          <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>Đăng ký tài khoản</h2>
 
           {error && <div className="error-box">{error}</div>}
 

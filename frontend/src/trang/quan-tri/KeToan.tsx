@@ -1,13 +1,21 @@
 import { Link } from 'react-router-dom';
-import { customers, invoices as seedInvoices, transactions } from '../../du-lieu/duLieuMau';
+import { customers as seedCustomers, invoices as seedInvoices, transactions as seedTransactions } from '../../du-lieu/duLieuMau';
 import { formatMoney } from '../../thu-vien/dinhDang';
 import { TheThongKe } from '../../thanh-phan/TheThongKe';
 import { NhanTrangThaiThanhToan } from '../../thanh-phan/NhanTrangThai';
 
 /** Màn Kế toán trong cổng Admin — cùng chỉ số báo cáo, dữ liệu mock */
 export function KeToan() {
-  const invoices = (JSON.parse(localStorage.getItem('mock_invoices') || 'null') || seedInvoices) as typeof seedInvoices;
+  const invoices = (JSON.parse(localStorage.getItem('mock_invoices') || 'null') ?? seedInvoices) as typeof seedInvoices;
+  const transactions = (JSON.parse(localStorage.getItem('mock_transactions') || 'null') ?? seedTransactions) as typeof seedTransactions;
+  const customers = (JSON.parse(localStorage.getItem('mock_customers') || 'null') ?? seedCustomers) as typeof seedCustomers;
   
+  const revenue = invoices
+    .filter((i) => i.status === 'DaThanhToan')
+    .reduce((s, i) => s + i.total, 0);
+
+  const estimatedVat = Math.round(revenue * 0.1);
+
   const unpaid = invoices
     .filter((i) => i.status !== 'DaThanhToan')
     .reduce((s, i) => s + (i.total - i.paidAmount), 0);
@@ -15,12 +23,14 @@ export function KeToan() {
     .filter((i) => i.status === 'QuaHan')
     .reduce((s, i) => s + (i.total - i.paidAmount), 0);
 
+  const pendingInvoices = invoices.filter((i) => i.status !== 'DaThanhToan');
+
   return (
     <div className="stack">
       <div className="stats">
-        <TheThongKe label="Doanh thu tháng 8" value={formatMoney(555_000_000)} />
+        <TheThongKe label="Doanh thu" value={formatMoney(revenue)} />
         <TheThongKe label="Chưa thu" value={formatMoney(unpaid)} tone="warn" />
-        <TheThongKe label="Thuế GTGT ước tính" value={formatMoney(55_500_000)} />
+        <TheThongKe label="Thuế GTGT ước tính" value={formatMoney(estimatedVat)} />
         <TheThongKe label="Công nợ quá hạn" value={formatMoney(overdue)} tone="danger" />
       </div>
 
@@ -60,18 +70,23 @@ export function KeToan() {
                 </tr>
               </thead>
               <tbody>
-                {invoices
-                  .filter((i) => i.status !== 'DaThanhToan')
-                  .map((i) => (
-                    <tr key={i.id}>
-                      <td>{i.number}</td>
-                      <td>{customers.find((c) => c.id === i.customerId)?.name}</td>
-                      <td>{formatMoney(i.total - i.paidAmount)}</td>
-                      <td>
-                        <NhanTrangThaiThanhToan status={i.status} />
-                      </td>
-                    </tr>
-                  ))}
+                {pendingInvoices.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.number}</td>
+                    <td>{customers.find((c) => c.id === i.customerId)?.name ?? '—'}</td>
+                    <td>{formatMoney(i.total - i.paidAmount)}</td>
+                    <td>
+                      <NhanTrangThaiThanhToan status={i.status} />
+                    </td>
+                  </tr>
+                ))}
+                {pendingInvoices.length === 0 && (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="empty">Không có hóa đơn nào</div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -102,6 +117,13 @@ export function KeToan() {
                     <td style={{ fontWeight: 600 }}>{formatMoney(t.amount)}</td>
                   </tr>
                 ))}
+                {transactions.length === 0 && (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="empty">Chưa có giao dịch nào</div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

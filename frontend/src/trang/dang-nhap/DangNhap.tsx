@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 
-import { dungXacThuc } from '../../boi-canh/BoiCanhXacThuc';
+import { dungXacThuc, type LoginError } from '../../boi-canh/BoiCanhXacThuc';
 import type { Role } from '../../kieu';
 
 const homeByRole: Record<Role, string> = {
@@ -17,12 +17,13 @@ export function DangNhap() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LoginError | null>(null);
 
   if (account) return <Navigate to={homeByRole[account.role]} replace />;
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    setError(null);
     const err = login(username.trim(), password);
     if (err) {
       setError(err);
@@ -38,10 +39,9 @@ export function DangNhap() {
 
       <div className="auth-panel">
         <div className="auth-card">
-          <h2>Đăng nhập hệ thống</h2>
-          <p className="sub">HỆ THỐNG QUẢN LÝ CHO THUÊ KHO QUẦN ÁO</p>
+          <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>Đăng nhập hệ thống kho</h2>
 
-          {error && <div className="error-box">{error}</div>}
+          {error && error.field === 'general' && <div className="error-box">{error.message}</div>}
 
           <form onSubmit={onSubmit}>
             <div className="field">
@@ -49,10 +49,12 @@ export function DangNhap() {
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Họ tên / SĐT / email"
+                placeholder="SĐT / Email"
                 autoComplete="username"
+                className={error?.field === 'username' ? 'input-error' : ''}
                 required
               />
+              {error?.field === 'username' && <span className="error-text">{error.message}</span>}
             </div>
             <div className="field">
               <label>Mật khẩu</label>
@@ -62,8 +64,10 @@ export function DangNhap() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
+                className={error?.field === 'password' ? 'input-error' : ''}
                 required
               />
+              {error?.field === 'password' && <span className="error-text">{error.message}</span>}
             </div>
             <div className="checkbox-row">
               <label>
@@ -82,21 +86,7 @@ export function DangNhap() {
             </button>
           </form>
 
-          <div className="demo-accounts">
-            <strong>Tài khoản demo (mật khẩu: 123456)</strong>
-            <button type="button" onClick={() => { switchRoleDemo('admin'); navigate('/admin'); }}>
-              Admin — admin
-            </button>
-            <button type="button" onClick={() => { switchRoleDemo('staff'); navigate('/staff'); }}>
-              Nhân viên kho — staff
-            </button>
-            <button type="button" onClick={() => { switchRoleDemo('ketoan'); navigate('/accountant'); }}>
-              Kế toán — ketoan
-            </button>
-            <button type="button" onClick={() => { switchRoleDemo('0901234567'); navigate('/customer'); }}>
-              Khách hàng — 0901234567
-            </button>
-          </div>
+
         </div>
       </div>
     </div>

@@ -127,37 +127,65 @@ export function BaoCao() {
                 <thead>
                   <tr>
                     <th>Khoản mục</th>
-                    <th>Quý 2</th>
-                    <th>Quý 3 (ước)</th>
+                    <th>Quý trước</th>
+                    <th>Quý này</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>Doanh thu chưa thuế</td>
-                    <td>{formatMoney(1_445_000_000)}</td>
-                    <td>{formatMoney(555_000_000)}</td>
-                  </tr>
-                  <tr>
-                    <td>Thuế GTGT</td>
-                    <td>{formatMoney(144_500_000)}</td>
-                    <td>{formatMoney(55_500_000)}</td>
-                  </tr>
-                  <tr>
-                    <td>Chi phí vận hành</td>
-                    <td>{formatMoney(210_000_000)}</td>
-                    <td>{formatMoney(75_000_000)}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <strong>Lợi nhuận trước thuế</strong>
-                    </td>
-                    <td>
-                      <strong>{formatMoney(1_235_000_000)}</strong>
-                    </td>
-                    <td>
-                      <strong>{formatMoney(480_000_000)}</strong>
-                    </td>
-                  </tr>
+                  {(() => {
+                    let revQPrev = 0; let revQThis = 0;
+                    let expQPrev = 0; let expQThis = 0;
+                    let vatQPrev = 0; let vatQThis = 0;
+                    const today = new Date();
+                    const currentQ = Math.floor(today.getMonth() / 3);
+                    const currentY = today.getFullYear();
+                    
+                    transactions.forEach((t: any) => {
+                      if (t.status === 'XacNhan' && t.date) {
+                        const tDate = new Date(t.date);
+                        const q = Math.floor(tDate.getMonth() / 3);
+                        const y = tDate.getFullYear();
+                        
+                        let isThisQ = (q === currentQ && y === currentY);
+                        let isPrevQ = (y === currentY && q === currentQ - 1) || (y === currentY - 1 && currentQ === 0 && q === 3);
+                        
+                        if (isThisQ) {
+                          if (t.type === 'Thu') revQThis += t.amount / 1.1; // Estimate before tax
+                          if (t.type === 'Thu') vatQThis += (t.amount - (t.amount / 1.1));
+                          if (t.type === 'Chi') expQThis += t.amount;
+                        } else if (isPrevQ) {
+                          if (t.type === 'Thu') revQPrev += t.amount / 1.1;
+                          if (t.type === 'Thu') vatQPrev += (t.amount - (t.amount / 1.1));
+                          if (t.type === 'Chi') expQPrev += t.amount;
+                        }
+                      }
+                    });
+
+                    return (
+                      <>
+                        <tr>
+                          <td>Doanh thu chưa thuế</td>
+                          <td>{formatMoney(revQPrev)}</td>
+                          <td>{formatMoney(revQThis)}</td>
+                        </tr>
+                        <tr>
+                          <td>Thuế GTGT</td>
+                          <td>{formatMoney(vatQPrev)}</td>
+                          <td>{formatMoney(vatQThis)}</td>
+                        </tr>
+                        <tr>
+                          <td>Chi phí vận hành</td>
+                          <td>{formatMoney(expQPrev)}</td>
+                          <td>{formatMoney(expQThis)}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Lợi nhuận trước thuế</strong></td>
+                          <td><strong>{formatMoney(revQPrev - expQPrev)}</strong></td>
+                          <td><strong>{formatMoney(revQThis - expQThis)}</strong></td>
+                        </tr>
+                      </>
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -198,7 +226,7 @@ export function BaoCao() {
 
       {tab === 'cash' && (
         <div className="grid-2">
-          <BangDieuKhien title="Thu – chi theo tháng (minh họa)">
+          <BangDieuKhien title="Thu – chi theo tháng (thực tế)">
             <div className="table-wrap">
               <table className="data">
                 <thead>
@@ -210,33 +238,61 @@ export function BaoCao() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    ['T6', 510, 68],
-                    ['T7', 535, 72],
-                    ['T8', 555, 75],
-                  ].map(([m, thu, chi]) => (
-                    <tr key={m as string}>
-                      <td>{m}</td>
-                      <td>{thu} tr</td>
-                      <td>{chi} tr</td>
-                      <td>{(thu as number) - (chi as number)} tr</td>
-                    </tr>
-                  ))}
+                  {(() => {
+                    const today = new Date();
+                    const months = [];
+                    for (let i = 2; i >= 0; i--) {
+                      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                      months.push({ label: `T${d.getMonth() + 1}`, m: d.getMonth() + 1, y: d.getFullYear(), thu: 0, chi: 0 });
+                    }
+                    transactions.forEach((t: any) => {
+                      if (t.status === 'XacNhan' && t.date) {
+                        const tDate = new Date(t.date);
+                        const b = months.find(x => x.m === tDate.getMonth() + 1 && x.y === tDate.getFullYear());
+                        if (b) {
+                          if (t.type === 'Thu') b.thu += t.amount;
+                          if (t.type === 'Chi') b.chi += t.amount;
+                        }
+                      }
+                    });
+                    return months.map((b) => (
+                      <tr key={b.label}>
+                        <td>{b.label}</td>
+                        <td>{formatMoney(b.thu)}</td>
+                        <td>{formatMoney(b.chi)}</td>
+                        <td>{formatMoney(b.thu - b.chi)}</td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
           </BangDieuKhien>
-          <BangDieuKhien title="Chi phí theo loại">
+          <BangDieuKhien title="Chi phí theo loại (thực tế)">
             <div className="chart-box">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={expensePie} dataKey="value" nameKey="name" outerRadius={90} label>
-                    {expensePie.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v) => [`${v} triệu`, 'Chi phí']} />
-                </PieChart>
+                {(() => {
+                  const expenses: Record<string, number> = {};
+                  transactions.forEach((t: any) => {
+                    if (t.type === 'Chi' && t.status === 'XacNhan') {
+                      expenses[t.category] = (expenses[t.category] || 0) + t.amount;
+                    }
+                  });
+                  const data = Object.keys(expenses).map(k => ({ name: k, value: expenses[k] }));
+                  if (data.length === 0) {
+                     return <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-light)'}}>Chưa có dữ liệu chi phí</div>;
+                  }
+                  return (
+                    <PieChart>
+                      <Pie data={data} dataKey="value" nameKey="name" outerRadius={90} label>
+                        {data.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v) => [formatMoney(v as number), 'Chi phí']} />
+                    </PieChart>
+                  );
+                })()}
               </ResponsiveContainer>
             </div>
           </BangDieuKhien>
@@ -256,52 +312,69 @@ export function BaoCao() {
             </div>
           </div>
           <div className="grid-2 equal">
-            <div className="panel">
-              <div className="panel-hd">
-                <h2>Thuế GTGT</h2>
-              </div>
-              <div className="panel-bd stack">
-                <div className="detail-item">
-                  <label>Doanh thu chịu thuế</label>
-                  <strong>{formatMoney(555_000_000)}</strong>
-                </div>
-                <div className="detail-item">
-                  <label>GTGT đầu ra (10%)</label>
-                  <strong>{formatMoney(55_500_000)}</strong>
-                </div>
-                <div className="detail-item">
-                  <label>GTGT đầu vào được khấu trừ</label>
-                  <strong>{formatMoney(7_500_000)}</strong>
-                </div>
-                <div className="detail-item">
-                  <label>GTGT phải nộp</label>
-                  <strong>{formatMoney(48_000_000)}</strong>
-                </div>
-              </div>
-            </div>
-            <div className="panel">
-              <div className="panel-hd">
-                <h2>Thuế TNDN tạm tính</h2>
-              </div>
-              <div className="panel-bd stack">
-                <div className="detail-item">
-                  <label>Doanh thu</label>
-                  <strong>{formatMoney(555_000_000)}</strong>
-                </div>
-                <div className="detail-item">
-                  <label>Chi phí hợp lý</label>
-                  <strong>{formatMoney(75_000_000)}</strong>
-                </div>
-                <div className="detail-item">
-                  <label>Thu nhập chịu thuế</label>
-                  <strong>{formatMoney(480_000_000)}</strong>
-                </div>
-                <div className="detail-item">
-                  <label>Thuế TNDN 20%</label>
-                  <strong>{formatMoney(96_000_000)}</strong>
-                </div>
-              </div>
-            </div>
+            {(() => {
+              let rev = 0;
+              let exp = 0;
+              transactions.forEach((t: any) => {
+                if (t.status === 'XacNhan') {
+                  if (t.type === 'Thu') rev += t.amount / 1.1;
+                  if (t.type === 'Chi') exp += t.amount;
+                }
+              });
+              const vatOut = rev * 0.1;
+              const vatIn = exp * 0.1; // roughly assume 10% VAT on expenses
+              
+              return (
+                <>
+                  <div className="panel">
+                    <div className="panel-hd">
+                      <h2>Thuế GTGT</h2>
+                    </div>
+                    <div className="panel-bd stack">
+                      <div className="detail-item">
+                        <label>Doanh thu chịu thuế</label>
+                        <strong>{formatMoney(rev)}</strong>
+                      </div>
+                      <div className="detail-item">
+                        <label>GTGT đầu ra (10%)</label>
+                        <strong>{formatMoney(vatOut)}</strong>
+                      </div>
+                      <div className="detail-item">
+                        <label>GTGT đầu vào được khấu trừ</label>
+                        <strong>{formatMoney(vatIn)}</strong>
+                      </div>
+                      <div className="detail-item">
+                        <label>GTGT phải nộp</label>
+                        <strong>{formatMoney(Math.max(0, vatOut - vatIn))}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="panel">
+                    <div className="panel-hd">
+                      <h2>Thuế TNDN tạm tính</h2>
+                    </div>
+                    <div className="panel-bd stack">
+                      <div className="detail-item">
+                        <label>Doanh thu</label>
+                        <strong>{formatMoney(rev)}</strong>
+                      </div>
+                      <div className="detail-item">
+                        <label>Chi phí hợp lý</label>
+                        <strong>{formatMoney(exp)}</strong>
+                      </div>
+                      <div className="detail-item">
+                        <label>Thu nhập chịu thuế</label>
+                        <strong>{formatMoney(Math.max(0, rev - exp))}</strong>
+                      </div>
+                      <div className="detail-item">
+                        <label>Thuế TNDN 20%</label>
+                        <strong>{formatMoney(Math.max(0, rev - exp) * 0.2)}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

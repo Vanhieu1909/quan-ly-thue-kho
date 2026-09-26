@@ -3,9 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import type { Account } from '../kieu';
 import { accounts as seedAccounts } from '../du-lieu/duLieuMau';
 
+export interface LoginError {
+  field: 'username' | 'password' | 'general';
+  message: string;
+}
+
 interface AuthContextType {
   account: Account | null;
-  login: (username: string, pass: string) => string | null;
+  login: (username: string, pass: string) => LoginError | null;
   logout: () => void;
   register: (name: string, phone: string, email: string, pass: string) => string | null;
   switchRoleDemo: (role: string) => void;
@@ -48,16 +53,26 @@ export function NhaCungCapXacThuc({ children }: { children: ReactNode }) {
     localStorage.setItem('mock_accounts', JSON.stringify(allAccounts));
   }, [allAccounts]);
 
-  function login(username: string, pass: string) {
-    const found = allAccounts.find((a) => 
-      (a.username === username || a.name === username || a.phone === username || a.email === username) 
-      && a.passwordHash === pass
+  function login(username: string, pass: string): LoginError | null {
+    const currentAccounts = loadAllAccounts();
+    const foundUser = currentAccounts.find((a) => 
+      (a.username === username || a.phone === username || a.email === username)
     );
-    if (found) {
-      setAccount(found);
-      return null;
+    
+    if (!foundUser) {
+      return { field: 'username', message: 'Tài khoản không tồn tại' };
     }
-    return 'Sai thông tin đăng nhập hoặc mật khẩu';
+
+    if (foundUser.passwordHash !== pass) {
+      return { field: 'password', message: 'Mật khẩu không chính xác' };
+    }
+    
+    if (foundUser.status === 'INACTIVE') {
+      return { field: 'general', message: 'Tài khoản này đã bị khóa.' };
+    }
+
+    setAccount(foundUser);
+    return null;
   }
 
   function register(name: string, phone: string, email: string, pass: string) {
@@ -82,7 +97,8 @@ export function NhaCungCapXacThuc({ children }: { children: ReactNode }) {
   }
 
   function switchRoleDemo(username: string) {
-    const found = allAccounts.find((a) => a.username === username);
+    const currentAccounts = loadAllAccounts();
+    const found = currentAccounts.find((a) => a.username === username);
     if (found) setAccount(found);
   }
 

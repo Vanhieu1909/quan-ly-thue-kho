@@ -90,10 +90,7 @@ p {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(31, 107, 90, 0.18), transparent),
-    radial-gradient(ellipse 60% 50% at 90% 80%, rgba(240, 199, 94, 0.2), transparent),
-    linear-gradient(135deg, #101828 0%, #1a2b45 45%, #243b55 100%);
+  background: linear-gradient(rgba(21, 32, 51, 0.45), rgba(21, 32, 51, 0.65)), url('/bg-warehouse.jpg?v=2') center/cover no-repeat fixed;
 }
 
 .auth-brand {
@@ -164,7 +161,8 @@ p {
   background: var(--surface);
   border-radius: 18px;
   padding: 36px 32px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--shadow);
 }
 
 .auth-card h2 {
@@ -1082,8 +1080,11 @@ table.data .actions {
 
 @media (max-width: 960px) {
   .auth-page {
-    grid-template-columns: 1fr;
-  }
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  background: linear-gradient(rgba(21, 32, 51, 0.45), rgba(21, 32, 51, 0.65)), url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat fixed;
+}
 
   .auth-brand {
     padding: 36px 28px 12px;
@@ -1130,3 +1131,10 @@ table.data .actions {
 
 .ban-do-o--ChoHieuLuc { background: #fff7ed; border-color: #fdba74; }
 .ban-do-o--ChoHieuLuc .ban-do-o__status { color: #ea580c; }
+
+
+.input-error { border-color: var(--danger) !important; }
+.error-text { color: var(--danger); font-size: 0.85rem; margin-top: 4px; display: block; }
+
+
+

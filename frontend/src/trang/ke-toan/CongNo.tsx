@@ -8,12 +8,15 @@ export function CongNo() {
   const [customers, setCustomers] = useState(seedCustomers);
 
   useEffect(() => {
+    const dedupe = (arr: any[]) => arr.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+    
     const lInv = localStorage.getItem('mock_invoices');
     const lCont = localStorage.getItem('mock_contracts');
     const lCust = localStorage.getItem('mock_customers');
-    if (lInv) setInvoices(JSON.parse(lInv));
-    if (lCont) setContracts(JSON.parse(lCont));
-    if (lCust) setCustomers(JSON.parse(lCust));
+    
+    if (lInv) setInvoices(dedupe(JSON.parse(lInv)));
+    if (lCont) setContracts(dedupe(JSON.parse(lCont)));
+    if (lCust) setCustomers(dedupe(JSON.parse(lCust)));
   }, []);
 
   const rows = customers

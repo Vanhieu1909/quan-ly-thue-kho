@@ -30,7 +30,7 @@ export function QuanLyHopDong() {
         localStorage.setItem('mock_contracts', JSON.stringify(seed));
         return seed;
       }
-      return parsed;
+      return parsed.filter((v: any, i: number, a: any[]) => a.findIndex(t => t.id === v.id) === i);
     }
     return seed;
   });
@@ -39,7 +39,11 @@ export function QuanLyHopDong() {
   const [open, setOpen] = useState(false);
   const [localCustomers, setLocalCustomers] = useState<Customer[]>(() => {
     const saved = localStorage.getItem('mock_customers');
-    return saved ? JSON.parse(saved) : customers;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.filter((v: any, i: number, a: any[]) => a.findIndex(t => t.id === v.id) === i);
+    }
+    return customers;
   });
   const [form, setForm] = useState({
     customerId: '',
@@ -56,7 +60,12 @@ export function QuanLyHopDong() {
     if (state?.openCreate) {
       let matchedId = '';
       if (state.customerName) {
-        let match = localCustomers.find((c: any) => c.name === state.customerName || (state.phone && c.phone === state.phone));
+        const norm = (s: string) => (s || '').trim().toLowerCase();
+        let match = localCustomers.find((c: any) => 
+          norm(c.name) === norm(state.customerName) || 
+          (state.phone && c.phone && norm(c.phone) === norm(state.phone)) ||
+          (state.email && c.email && norm(c.email) === norm(state.email))
+        );
         if (match) {
           matchedId = match.id;
         } else {

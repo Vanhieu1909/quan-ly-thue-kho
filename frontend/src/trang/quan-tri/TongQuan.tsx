@@ -49,14 +49,6 @@ export function TongQuan() {
     .filter((i) => i.date.startsWith(currentMonth) && i.status === 'DaThanhToan')
     .reduce((s, i) => s + i.total, 0);
 
-  // Hàm reset dữ liệu (dành cho demo)
-  function handleResetData() {
-    if (window.confirm('BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU?\n\nTất cả hợp đồng, khách hàng, hóa đơn sẽ bị xóa sạch. Hệ thống sẽ trở về trạng thái trống ban đầu.')) {
-      ['mock_areas','mock_contracts','mock_customers','mock_invoices','mock_billingCycles','mock_transactions', 'mock_rentalRequests', 'thue-kho-rental-requests'].forEach(k => localStorage.removeItem(k));
-      window.location.reload();
-    }
-  }
-
   // Biểu đồ 6 tháng gần nhất từ hóa đơn thực tế
   const chartData = Array.from({ length: 6 }, (_, idx) => {
     const now = new Date();
@@ -70,11 +62,6 @@ export function TongQuan() {
 
   return (
     <div className="stack">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-16px' }}>
-        <button className="btn btn-danger btn-sm" onClick={handleResetData} style={{ backgroundColor: 'var(--danger)', color: 'white', fontWeight: 'bold' }}>
-          🔄 Reset dữ liệu (Xóa tất cả)
-        </button>
-      </div>
 
       <div className="stats">
         <TheThongKe
