@@ -2,9 +2,9 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..deps import get_current_user, require_roles
+from ..deps import get_current_account, require_roles
 from ..models.customer import Customer
-from ..models.user import User
+from ..models.account import Account
 from ..schemas.customer import CustomerCreate, CustomerRead, CustomerUpdate
 
 router = APIRouter()
@@ -13,10 +13,10 @@ STAFF_ROLES = ("admin", "staff", "accountant")
 
 
 @router.get("/me", response_model=CustomerRead)
-async def get_my_customer(current_user: User = Depends(get_current_user)) -> CustomerRead:
-    if current_user.customer_id is None:
+async def get_my_customer(current_account: Account = Depends(get_current_account)) -> CustomerRead:
+    if current_account.customer_id is None:
         raise HTTPException(status_code=404, detail="Tài khoản chưa gắn với hồ sơ khách hàng")
-    customer = await Customer.get(current_user.customer_id)
+    customer = await Customer.get(current_account.customer_id)
     if customer is None:
         raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
     return CustomerRead.from_doc(customer)

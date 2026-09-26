@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import init_db
 from .routers import (
+    accounts,
     areas,
     auth,
     contracts,
@@ -14,7 +15,6 @@ from .routers import (
     rental_requests,
     reports,
     transactions,
-    users,
 )
 
 app = FastAPI(title="API Quản lý cho thuê kho quần áo")
@@ -39,7 +39,7 @@ async def health() -> dict:
 
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(accounts.router, prefix="/api/accounts", tags=["accounts"])
 app.include_router(areas.router, prefix="/api/areas", tags=["areas"])
 app.include_router(customers.router, prefix="/api/customers", tags=["customers"])
 app.include_router(contracts.router, prefix="/api/contracts", tags=["contracts"])

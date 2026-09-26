@@ -6,7 +6,7 @@ from pymongo import ASCENDING, IndexModel
 from .enums import Role
 
 
-class User(Document):
+class Account(Document):
     username: str
     password_hash: str
     name: str
@@ -16,5 +16,5 @@ class User(Document):
     customer_id: Optional[str] = None
 
     class Settings:
-        name = "users"
+        name = "accounts"
         indexes = [IndexModel([("username", ASCENDING)], unique=True)]

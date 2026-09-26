@@ -2,9 +2,9 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..deps import get_current_user, require_roles
+from ..deps import get_current_account, require_roles
 from ..models.invoice import Invoice
-from ..models.user import User
+from ..models.account import Account
 from ..schemas.invoice import InvoiceCreate, InvoiceRead, PaymentCreate
 from ..services import debt, invoicing
 
@@ -12,11 +12,11 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[InvoiceRead])
-async def list_invoices(current_user: User = Depends(get_current_user)) -> List[InvoiceRead]:
-    if current_user.role == "customer":
-        if current_user.customer_id is None:
+async def list_invoices(current_account: Account = Depends(get_current_account)) -> List[InvoiceRead]:
+    if current_account.role == "customer":
+        if current_account.customer_id is None:
             return []
-        invoices = await Invoice.find(Invoice.customer_id == current_user.customer_id).to_list()
+        invoices = await Invoice.find(Invoice.customer_id == current_account.customer_id).to_list()
     else:
         invoices = await Invoice.find_all().to_list()
     return [InvoiceRead.from_doc(invoice) for invoice in invoices]
@@ -24,12 +24,12 @@ async def list_invoices(current_user: User = Depends(get_current_user)) -> List[
 
 @router.get("/{invoice_id}", response_model=InvoiceRead)
 async def get_invoice(
-    invoice_id: str, current_user: User = Depends(get_current_user)
+    invoice_id: str, current_account: Account = Depends(get_current_account)
 ) -> InvoiceRead:
     invoice = await Invoice.get(invoice_id)
     if invoice is None:
         raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
-    if current_user.role == "customer" and invoice.customer_id != current_user.customer_id:
+    if current_account.role == "customer" and invoice.customer_id != current_account.customer_id:
         raise HTTPException(status_code=403, detail="Không có quyền xem hóa đơn này")
     return InvoiceRead.from_doc(invoice)
 

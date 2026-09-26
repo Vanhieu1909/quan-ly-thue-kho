@@ -1,5 +1,5 @@
 from .common import CamelModel
-from .user import UserRead
+from .account import AccountRead
 
 
 class LoginRequest(CamelModel):
@@ -10,4 +10,4 @@ class LoginRequest(CamelModel):
 class TokenResponse(CamelModel):
     access_token: str
     token_type: str = "bearer"
-    user: UserRead
+    account: AccountRead

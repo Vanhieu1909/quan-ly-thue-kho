@@ -12,10 +12,9 @@ from app.models.customer import Customer
 from app.models.invoice import Invoice
 from app.models.price import PriceRow
 from app.models.rental_request import RentalRequest
-from app.models.user import User
+from app.models.account import Account
 from app.models.warehouse import Warehouse
 from app.models.billing_cycle import BillingCycle
-from app.models.user import User
 from app.security import hash_password
 
 
@@ -56,19 +55,19 @@ async def seed() -> None:
         email="giabao@may.vn", tax_code="0109876543", rented_m2=50, debt=0, status="DangThue",
     ).insert()
 
-    await User(
+    await Account(
         username="admin", password_hash=hash_password("123456"), name="Hoàng Thu Huyền",
         role="admin", email="admin@thuekho.vn",
     ).insert()
-    await User(
+    await Account(
         username="staff", password_hash=hash_password("123456"), name="Lê Văn Hiếu",
         role="staff", email="kho@thuekho.vn",
     ).insert()
-    await User(
+    await Account(
         username="ketoan", password_hash=hash_password("123456"), name="Lê Ngọc Ánh",
         role="accountant", email="ketoan@thuekho.vn",
     ).insert()
-    await User(
+    await Account(
         username="0901234567", password_hash=hash_password("123456"), name="Shop Thời Trang Luna",
         role="customer", phone="0901234567", email="luna@shop.vn", customer_id=str(customer_luna.id),
     ).insert()

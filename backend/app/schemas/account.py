@@ -1,11 +1,11 @@
 from typing import Optional
 
 from ..models.enums import Role
-from ..models.user import User
+from ..models.account import Account
 from .common import CamelModel
 
 
-class UserRead(CamelModel):
+class AccountRead(CamelModel):
     id: str
     username: str
     name: str
@@ -15,7 +15,7 @@ class UserRead(CamelModel):
     customer_id: Optional[str] = None
 
     @classmethod
-    def from_doc(cls, doc: User) -> "UserRead":
+    def from_doc(cls, doc: Account) -> "AccountRead":
         return cls(
             id=str(doc.id),
             username=doc.username,
@@ -27,7 +27,7 @@ class UserRead(CamelModel):
         )
 
 
-class UserCreate(CamelModel):
+class AccountCreate(CamelModel):
     username: str
     password: str
     name: str
@@ -37,7 +37,7 @@ class UserCreate(CamelModel):
     customer_id: Optional[str] = None
 
 
-class UserUpdate(CamelModel):
+class AccountUpdate(CamelModel):
     name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None

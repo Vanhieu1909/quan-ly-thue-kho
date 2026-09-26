@@ -2,9 +2,9 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..deps import get_current_user, require_roles
+from ..deps import get_current_account, require_roles
 from ..models.contract import Contract
-from ..models.user import User
+from ..models.account import Account
 from ..schemas.contract import ContractCreate, ContractRead, ContractUpdate
 from ..services import billing
 
@@ -12,11 +12,11 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[ContractRead])
-async def list_contracts(current_user: User = Depends(get_current_user)) -> List[ContractRead]:
-    if current_user.role == "customer":
-        if current_user.customer_id is None:
+async def list_contracts(current_account: Account = Depends(get_current_account)) -> List[ContractRead]:
+    if current_account.role == "customer":
+        if current_account.customer_id is None:
             return []
-        contracts = await Contract.find(Contract.customer_id == current_user.customer_id).to_list()
+        contracts = await Contract.find(Contract.customer_id == current_account.customer_id).to_list()
     else:
         contracts = await Contract.find_all().to_list()
     return [ContractRead.from_doc(contract) for contract in contracts]
@@ -24,12 +24,12 @@ async def list_contracts(current_user: User = Depends(get_current_user)) -> List
 
 @router.get("/{contract_id}", response_model=ContractRead)
 async def get_contract(
-    contract_id: str, current_user: User = Depends(get_current_user)
+    contract_id: str, current_account: Account = Depends(get_current_account)
 ) -> ContractRead:
     contract = await Contract.get(contract_id)
     if contract is None:
         raise HTTPException(status_code=404, detail="Không tìm thấy hợp đồng")
-    if current_user.role == "customer" and contract.customer_id != current_user.customer_id:
+    if current_account.role == "customer" and contract.customer_id != current_account.customer_id:
         raise HTTPException(status_code=403, detail="Không có quyền xem hợp đồng này")
     return ContractRead.from_doc(contract)
 

@@ -10,12 +10,12 @@ from .models.invoice import Invoice
 from .models.price import PriceRow
 from .models.rental_request import RentalRequest
 from .models.transaction import Transaction
-from .models.user import User
+from .models.account import Account
 from .models.warehouse import Warehouse
 from .models.billing_cycle import BillingCycle
 
 DOCUMENT_MODELS = [
-    User,
+    Account,
     Area,
     Customer,
     Contract,
