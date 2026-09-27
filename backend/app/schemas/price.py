@@ -22,7 +22,7 @@ class PriceRead(CamelModel):
 class PriceCreate(CamelModel):
     type: AreaType
     unit_price: float
-    unit: str = "đồng/m²/tháng"
+    unit: str = "đồng/cái/tháng"
     effective_from: date
 
 

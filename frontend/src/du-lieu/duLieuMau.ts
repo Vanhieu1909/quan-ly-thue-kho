@@ -58,19 +58,19 @@ export const warehouses: Warehouse[] = [
 ];
 
 export const areas: Area[] = [
-  { id: 'ar1', warehouseId: 'w1', code: 'A1', name: 'Dãy A1', capacity: 100, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 1, col: 1, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar2', warehouseId: 'w1', code: 'A2', name: 'Dãy A2', capacity: 80, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 3, col: 1, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar9', warehouseId: 'w1', code: 'A3', name: 'Dãy A3', capacity: 80, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 5, col: 1, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar10', warehouseId: 'w1', code: 'A4', name: 'Dãy A4', capacity: 60, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 7, col: 1, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar3', warehouseId: 'w1', code: 'B1', name: 'Dãy B1', capacity: 60, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 1, col: 4, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar11', warehouseId: 'w1', code: 'B2', name: 'Dãy B2', capacity: 60, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 3, col: 4, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar12', warehouseId: 'w1', code: 'B3', name: 'Dãy B3', capacity: 50, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 5, col: 4, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar13', warehouseId: 'w1', code: 'B4', name: 'Dãy B4', capacity: 50, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 7, col: 4, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar4', warehouseId: 'w1', code: 'C1', name: 'Dãy C1', capacity: 50, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy C', map: { floor: 1, row: 1, col: 7, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar5', warehouseId: 'w1', code: 'C2', name: 'Dãy C2', capacity: 50, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy C', map: { floor: 1, row: 3, col: 7, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar6', warehouseId: 'w1', code: 'C3', name: 'Dãy C3', capacity: 40, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy C', map: { floor: 1, row: 5, col: 7, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar7', warehouseId: 'w1', code: 'D1', name: 'Dãy D1', capacity: 90, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy D', map: { floor: 1, row: 1, col: 10, rowSpan: 2, colSpan: 3 } },
-  { id: 'ar8', warehouseId: 'w1', code: 'D2', name: 'Dãy D2', capacity: 45, rentalUnit: 'Pallet', type: 'Ke', status: 'Trong', location: 'Dãy D', map: { floor: 1, row: 3, col: 10, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar1', warehouseId: 'w1', code: 'A1', name: 'Dãy A1', capacity: 100, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 1, col: 1, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar2', warehouseId: 'w1', code: 'A2', name: 'Dãy A2', capacity: 80, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 3, col: 1, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar9', warehouseId: 'w1', code: 'A3', name: 'Dãy A3', capacity: 80, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 5, col: 1, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar10', warehouseId: 'w1', code: 'A4', name: 'Dãy A4', capacity: 60, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy A', map: { floor: 1, row: 7, col: 1, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar3', warehouseId: 'w1', code: 'B1', name: 'Dãy B1', capacity: 60, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 1, col: 4, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar11', warehouseId: 'w1', code: 'B2', name: 'Dãy B2', capacity: 60, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 3, col: 4, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar12', warehouseId: 'w1', code: 'B3', name: 'Dãy B3', capacity: 50, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 5, col: 4, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar13', warehouseId: 'w1', code: 'B4', name: 'Dãy B4', capacity: 50, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy B', map: { floor: 1, row: 7, col: 4, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar4', warehouseId: 'w1', code: 'C1', name: 'Dãy C1', capacity: 50, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy C', map: { floor: 1, row: 1, col: 7, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar5', warehouseId: 'w1', code: 'C2', name: 'Dãy C2', capacity: 50, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy C', map: { floor: 1, row: 3, col: 7, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar6', warehouseId: 'w1', code: 'C3', name: 'Dãy C3', capacity: 40, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy C', map: { floor: 1, row: 5, col: 7, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar7', warehouseId: 'w1', code: 'D1', name: 'Dãy D1', capacity: 90, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy D', map: { floor: 1, row: 1, col: 10, rowSpan: 2, colSpan: 3 } },
+  { id: 'ar8', warehouseId: 'w1', code: 'D2', name: 'Dãy D2', capacity: 45, rentalUnit: 'cái', type: 'Ke', status: 'Trong', location: 'Dãy D', map: { floor: 1, row: 3, col: 10, rowSpan: 2, colSpan: 3 } },
 ];
 
 export const customers: Customer[] = [];
@@ -86,7 +86,7 @@ export const transactions: Transaction[] = [];
 export const rentalRequests: RentalRequest[] = [];
 
 export const priceTable: PriceRow[] = [
-  { id: 'p1', type: 'Ke', unitPrice: 120000, unit: 'đồng/Pallet/tháng', effectiveFrom: '2026-01-01', status: 'DangApDung' },
+  { id: 'p1', type: 'Ke', unitPrice: 120000, unit: 'đồng/cái/tháng', effectiveFrom: '2026-01-01', status: 'DangApDung' },
 ];
 
 export const inspections: Inspection[] = [

@@ -19,7 +19,7 @@ const emptyForm = {
   code: '',
   name: '',
   capacity: '',
-  rentalUnit: 'Pallet' as RentalUnit,
+  rentalUnit: 'cái' as RentalUnit,
   type: 'Ke' as AreaType,
   status: 'Trong' as AreaStatus,
   location: '',
@@ -433,7 +433,7 @@ export function QuanLyKho({ focusStatusRequests: _focusStatusRequests = false }:
           <span>
             Hiển thị 1–{filtered.length} / {filtered.length} khu vực
           </span>
-          <span>Đơn giá tham chiếu: Kệ {formatMoney(150000)}/m²</span>
+          <span>Đơn giá tham chiếu: Kệ {formatMoney(120000)}/cái</span>
         </div>
       </div>
 
@@ -502,7 +502,7 @@ export function QuanLyKho({ focusStatusRequests: _focusStatusRequests = false }:
               Đơn vị tính <span className="req">*</span>
             </label>
             <select value={form.rentalUnit} onChange={(e) => setForm({ ...form, rentalUnit: e.target.value as RentalUnit })} disabled>
-              <option value="Pallet">Pallet</option>
+              <option value="cái">Cái</option>
             </select>
           </div>
           <div className="field">

@@ -105,15 +105,7 @@ async def seed() -> None:
     ).insert()
 
     await PriceRow(
-        type="Ke", unit_price=150000, unit="đồng/m²/tháng", effective_from=date(2026, 1, 1),
-        status="DangApDung",
-    ).insert()
-    await PriceRow(
-        type="Treo", unit_price=200000, unit="đồng/m²/tháng", effective_from=date(2026, 1, 1),
-        status="DangApDung",
-    ).insert()
-    await PriceRow(
-        type="KeVIP", unit_price=250000, unit="đồng/m²/tháng", effective_from=date(2026, 1, 1),
+        type="Ke", unit_price=120000, unit="đồng/cái/tháng", effective_from=date(2026, 1, 1),
         status="DangApDung",
     ).insert()
 

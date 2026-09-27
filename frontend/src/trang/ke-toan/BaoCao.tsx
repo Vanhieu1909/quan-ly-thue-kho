@@ -399,9 +399,9 @@ export function BaoCao() {
                 {fillRateByMonth.map((r) => (
                   <tr key={r.month}>
                     <td>{r.month}</td>
-                    <td>{r.total} Pallet</td>
-                    <td>{r.rented} Pallet</td>
-                    <td>{r.total - r.rented} Pallet</td>
+                    <td>{r.total} cái</td>
+                    <td>{r.rented} cái</td>
+                    <td>{r.total - r.rented} cái</td>
                     <td>{r.rate}%</td>
                   </tr>
                 ))}

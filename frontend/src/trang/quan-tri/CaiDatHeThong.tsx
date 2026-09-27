@@ -23,7 +23,7 @@ export function CaiDatHeThong() {
   const [form, setForm] = useState({
     type: 'Ke' as AreaType,
     unitPrice: 120000,
-    unit: 'đồng/Pallet/tháng',
+    unit: 'đồng/cái/tháng',
     effectiveFrom: '2026-01-01',
   });
 
@@ -47,7 +47,7 @@ export function CaiDatHeThong() {
     setForm({
       type: 'Ke',
       unitPrice: 120000,
-      unit: 'đồng/Pallet/tháng',
+      unit: 'đồng/cái/tháng',
       effectiveFrom: new Date().toISOString().split('T')[0],
     });
     setOpenModal(true);
@@ -257,7 +257,7 @@ export function CaiDatHeThong() {
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value as AreaType })}
             >
-              <option value="Ke">Sàn kho chứa Pallet (Kệ chứa hàng)</option>
+              <option value="Ke">Sàn kho chứa hàng (Kệ chứa hàng)</option>
               <option value="Treo">Sàn kho tiêu chuẩn</option>
               <option value="KeVIP">Sàn kho đặc biệt</option>
             </select>
@@ -282,9 +282,7 @@ export function CaiDatHeThong() {
                 value={form.unit}
                 onChange={(e) => setForm({ ...form, unit: e.target.value })}
               >
-                <option value="đồng/Pallet/tháng">đồng/Pallet/tháng</option>
-                <option value="đồng/m²/tháng">đồng/m²/tháng</option>
-                <option value="đồng/thùng/tháng">đồng/thùng/tháng</option>
+                <option value="đồng/cái/tháng">đồng/cái/tháng</option>
               </select>
             </div>
           </div>

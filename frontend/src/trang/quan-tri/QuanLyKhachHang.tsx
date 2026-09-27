@@ -35,13 +35,13 @@ export function QuanLyKhachHang() {
       // Calculate active rented capacity
       const activeContracts = contracts.filter(ct => ct.customerId === c.id && (ct.status === 'DangHieuLuc' || ct.status === 'ChoHieuLuc'));
       const capacityGroups = activeContracts.reduce((acc, ct) => {
-        const unit = ct.rentalUnit || 'Pallet';
+        const unit = ct.rentalUnit || 'cái';
         acc[unit] = (acc[unit] || 0) + Number(ct.capacity || 0);
         return acc;
       }, {} as Record<string, number>);
       
       const rentedTexts = Object.entries(capacityGroups).map(([unit, val]) => `${val} ${unit}`);
-      const rentedText = rentedTexts.length > 0 ? rentedTexts.join(', ') : '0 Pallet';
+      const rentedText = rentedTexts.length > 0 ? rentedTexts.join(', ') : '0 cái';
       
       // Calculate debt
       const custInvoices = invoices.filter(i => i.customerId === c.id);

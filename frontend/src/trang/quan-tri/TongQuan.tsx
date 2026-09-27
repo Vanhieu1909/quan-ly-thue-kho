@@ -69,7 +69,7 @@ export function TongQuan() {
           value={customers.length}
           hint={`${rentingCustomersCount} đang thuê`}
         />
-        <TheThongKe label="Diện tích đã thuê" value={`${rentedM2}`} hint={`Tổng ${totalM2}`} />
+        <TheThongKe label="Số lượng đã thuê" value={`${rentedM2} cái`} hint={`Tổng ${totalM2} cái`} />
         <TheThongKe label="Tỷ lệ lấp đầy" value={`${fillRate}%`} tone={fillRate >= 70 ? 'ok' : 'warn'} />
         <TheThongKe
           label="Doanh thu tháng này"

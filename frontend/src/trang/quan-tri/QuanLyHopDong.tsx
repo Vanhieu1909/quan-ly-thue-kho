@@ -115,7 +115,7 @@ export function QuanLyHopDong() {
 
   const selectedAreas = form.areaIds.map(id => areas.find(a => a.id === id)).filter(Boolean) as Area[];
   const totalCapacity = selectedAreas.reduce((sum, a) => sum + a.capacity, 0);
-  const commonUnit = selectedAreas.length > 0 ? selectedAreas[0].rentalUnit : 'Pallet';
+  const commonUnit = selectedAreas.length > 0 ? selectedAreas[0].rentalUnit : 'cái';
   const commonType = selectedAreas.length > 0 ? selectedAreas[0].type : 'Ke';
 
   const unitPrice = selectedAreas.length > 0
@@ -320,7 +320,7 @@ export function QuanLyHopDong() {
                     <td>{c.code}</td>
                     <td>{kh?.name}</td>
                     <td>{kvLabel}</td>
-                    <td>{c.capacity} {c.rentalUnit || kvList[0]?.rentalUnit || 'Pallet'}</td>
+                    <td>{c.capacity} {c.rentalUnit || kvList[0]?.rentalUnit || 'cái'}</td>
                     <td>{formatDate(c.startDate)}</td>
                     <td>{formatDate(c.endDate)}</td>
                     <td>{formatMoney(c.monthlyRent)}</td>

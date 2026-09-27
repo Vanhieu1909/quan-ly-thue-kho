@@ -47,7 +47,7 @@ export const roleLabel: Record<Role, string> = {
 };
 
 export const areaTypeLabel: Record<AreaType, string> = {
-  Ke: 'Sàn kho chứa Pallet (Kệ chứa hàng)',
+  Ke: 'Sàn kho chứa hàng (Kệ chứa hàng)',
   Treo: 'Sàn kho tiêu chuẩn',
   KeVIP: 'Sàn kho đặc biệt',
 };

@@ -188,7 +188,7 @@ export function ChiTietHopDong() {
           <div className="summary-box">
             <div className="row">
               <span>Đơn giá</span>
-              <strong>{formatMoney(contract.unitPrice)}/m²/tháng</strong>
+              <strong>{formatMoney(contract.unitPrice)}/{contract.rentalUnit || 'cái'}/tháng</strong>
             </div>
             <div className="row">
               <span>Tiền thuê</span>

@@ -45,7 +45,7 @@ export interface AreaMapPos {
   colSpan?: number;
 }
 
-export type RentalUnit = 'Pallet' | 'm2' | 'Bo' | 'Met';
+export type RentalUnit = 'cái' | 'Pallet' | 'm2' | 'Bo' | 'Met';
 
 export interface Area {
   id: string;

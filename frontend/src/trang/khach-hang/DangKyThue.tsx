@@ -11,7 +11,7 @@ export function DangKyThue() {
   const [warehouses] = useState(seedWarehouses);
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>('w1');
   const [selectedList, setSelectedList] = useState<Area[]>([]);
-  const [form, setForm] = useState({ requestedCapacity: '', rentalUnit: 'Pallet' as any, preferredType: 'Ke' as AreaType, startDate: '', endDate: '', duration: 1, note: '' });
+  const [form, setForm] = useState({ requestedCapacity: '', rentalUnit: 'cái' as any, preferredType: 'Ke' as AreaType, startDate: '', endDate: '', duration: 1, note: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState(false);
 
@@ -30,7 +30,7 @@ export function DangKyThue() {
       
       // Update form capacity
       const totalCapacity = newList.reduce((sum, a) => sum + a.capacity, 0);
-      const unit = newList.length > 0 ? newList[0].rentalUnit : 'Pallet';
+      const unit = newList.length > 0 ? newList[0].rentalUnit : 'cái';
       const type = newList.length > 0 ? newList[0].type : 'Ke';
       
       setForm(current => ({ 
@@ -134,7 +134,7 @@ export function DangKyThue() {
             <div className="field">
               <label>Đơn vị tính</label>
               <select value={form.rentalUnit} onChange={(event) => setForm({ ...form, rentalUnit: event.target.value as any })} disabled>
-                <option value="Pallet">Pallet</option>
+                <option value="cái">Cái</option>
               </select>
             </div>
             {/* Loại khu vực đã bị ẩn */}
