@@ -58,20 +58,21 @@ async def seed() -> None:
 
     await Account(
         username="admin", password_hash=hash_password("123456"), name="Hoàng Thu Huyền",
-        role="admin", email="admin@thuekho.vn",
+        role="admin", phone="0988888888", email="admin@thuekho.vn",
     ).insert()
     await Account(
         username="staff", password_hash=hash_password("123456"), name="Lê Văn Hiếu",
-        role="staff", email="kho@thuekho.vn",
+        role="staff", phone="0977777777", email="kho@thuekho.vn",
     ).insert()
     await Account(
         username="ketoan", password_hash=hash_password("123456"), name="Lê Ngọc Ánh",
-        role="accountant", email="ketoan@thuekho.vn",
+        role="accountant", phone="0966666666", email="ketoan@thuekho.vn",
     ).insert()
     await Account(
         username="0901234567", password_hash=hash_password("123456"), name="Shop Thời Trang Luna",
         role="customer", phone="0901234567", email="luna@shop.vn", customer_id=str(customer_luna.id),
     ).insert()
+
 
     contract_hd001 = await Contract(
         code="HD001", customer_id=str(customer_luna.id), area_id=str(area_a01.id), area_m2=100,

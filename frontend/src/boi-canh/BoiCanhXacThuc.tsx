@@ -53,27 +53,35 @@ export function NhaCungCapXacThuc({ children }: { children: ReactNode }) {
     localStorage.setItem('mock_accounts', JSON.stringify(allAccounts));
   }, [allAccounts]);
 
-  function login(username: string, pass: string): LoginError | null {
+  function login(input: string, pass: string): LoginError | null {
     const currentAccounts = loadAllAccounts();
-    const foundUser = currentAccounts.find((a) => 
-      (a.username === username || a.phone === username || a.email === username)
-    );
-    
+    const cleanInput = input.trim();
+
+    // Đăng nhập bằng SĐT, Email hoặc Tên đăng nhập (admin)
+    const foundUser = currentAccounts.find((a) => {
+      const phoneMatch = Boolean(a.phone && a.phone.trim() === cleanInput);
+      const emailMatch = Boolean(a.email && a.email.trim().toLowerCase() === cleanInput.toLowerCase());
+      const usernameMatch = Boolean(a.username && a.username.trim().toLowerCase() === cleanInput.toLowerCase());
+      return phoneMatch || emailMatch || usernameMatch;
+    });
+
     if (!foundUser) {
-      return { field: 'username', message: 'Tài khoản không tồn tại' };
+      return { field: 'username', message: 'Tên đăng nhập, SĐT hoặc Email không tồn tại trong hệ thống' };
     }
 
     if (foundUser.passwordHash !== pass) {
       return { field: 'password', message: 'Mật khẩu không chính xác' };
     }
-    
+
     if (foundUser.status === 'INACTIVE') {
       return { field: 'general', message: 'Tài khoản này đã bị khóa.' };
     }
 
+
     setAccount(foundUser);
     return null;
   }
+
 
   function register(name: string, phone: string, email: string, pass: string) {
     if (allAccounts.some((a) => a.username === phone)) return 'Số điện thoại đã được đăng ký';
@@ -147,8 +155,17 @@ export function NhaCungCapXacThuc({ children }: { children: ReactNode }) {
   );
 }
 
+const defaultAuthContext: AuthContextType = {
+  account: null,
+  login: () => ({ field: 'general', message: 'Hệ thống chưa sẵn sàng' }),
+  logout: () => {},
+  register: () => null,
+  switchRoleDemo: () => {},
+};
+
 export function dungXacThuc() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('dungXacThuc phải nằm trong NhaCungCapXacThuc');
+  if (!ctx) return defaultAuthContext;
   return ctx;
 }
+

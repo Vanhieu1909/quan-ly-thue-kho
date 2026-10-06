@@ -45,17 +45,18 @@ export function DangNhap() {
 
           <form onSubmit={onSubmit}>
             <div className="field">
-              <label>Tên đăng nhập</label>
+              <label>Số điện thoại hoặc Email</label>
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="SĐT / Email"
+                placeholder="Nhập SĐT hoặc Email (VD: 0988888888 hoặc admin@thuekho.vn)"
                 autoComplete="username"
                 className={error?.field === 'username' ? 'input-error' : ''}
                 required
               />
               {error?.field === 'username' && <span className="error-text">{error.message}</span>}
             </div>
+
             <div className="field">
               <label>Mật khẩu</label>
               <input

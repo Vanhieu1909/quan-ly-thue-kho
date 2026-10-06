@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { taiYeuCau, luuYeuCau } from '../../du-lieu/yeuCauLocal';
 import { areas } from '../../du-lieu/duLieuMau';
@@ -26,11 +27,21 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
     setSelected((s) => (s && s.id === id ? { ...s, status, note: extraNote ?? s.note } : s));
   }
 
+  const displayRows = useMemo(() => {
+
+    if (mode === 'pheDuyet') {
+      // Admin chỉ thấy các yêu cầu ĐÃ ĐƯỢC NHÂN VIÊN TIẾP NHẬN (DaTiepNhan), đã duyệt hoặc bị từ chối
+      return rows.filter((r) => r.status !== 'Moi');
+    }
+    // Nhân viên kho xem tất cả yêu cầu (đặc biệt các yêu cầu Mới để tiếp nhận)
+    return rows;
+  }, [rows, mode]);
+
   return (
     <div className="grid-2">
       <div className="panel">
         <div className="panel-hd">
-          <h2>Danh sách yêu cầu thuê</h2>
+          <h2>Danh sách yêu cầu thuê {mode === 'pheDuyet' ? '(Đã tiếp nhận)' : ''}</h2>
         </div>
         <div className="table-wrap">
           <table className="data">
@@ -44,7 +55,7 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {displayRows.map((r) => (
                 <tr
                   key={r.id}
                   onClick={() => setSelected(r)}
@@ -59,6 +70,17 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
                   </td>
                 </tr>
               ))}
+              {displayRows.length === 0 && (
+                <tr>
+                  <td colSpan={5}>
+                    <div className="empty">
+                      {mode === 'pheDuyet'
+                        ? 'Chưa có yêu cầu nào được nhân viên tiếp nhận'
+                        : 'Không có yêu cầu thuê nào'}
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -131,7 +153,7 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
               {mode === 'tiepNhan' && selected.status === 'DaTiepNhan' && (
                 <div className="summary-box">Yêu cầu đã được tiếp nhận và đang chờ quản trị viên phê duyệt.</div>
               )}
-              {mode === 'pheDuyet' && (selected.status === 'DaTiepNhan' || selected.status === 'Moi') && (
+              {mode === 'pheDuyet' && selected.status === 'DaTiepNhan' && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button className="btn btn-primary" onClick={() => {
                     updateStatus(selected.id, 'DaDuyet');
@@ -148,13 +170,14 @@ export function YeuCauThue({ mode = 'tiepNhan' }: { mode?: 'tiepNhan' | 'pheDuye
                       } 
                     });
                   }}>
-                    Phê duyệt yêu cầu {selected.status === 'Moi' && '(Duyệt ngay)'}
+                    Phê duyệt yêu cầu & Tạo hợp đồng
                   </button>
                   <button className="btn btn-danger" onClick={() => updateStatus(selected.id, 'TuChoi', 'Từ chối bởi quản trị viên')}>
                     Từ chối
                   </button>
                 </div>
               )}
+
               {selected.note && (
                 <div className="summary-box">
                   <div className="row">

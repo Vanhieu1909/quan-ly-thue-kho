@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Bar,
   BarChart,
@@ -24,18 +24,32 @@ const COLORS = ['#1f6b5a', '#d4a017', '#3d4a5c', '#6b7a8d', '#b45309'];
 
 export function BaoCao() {
   const [tab, setTab] = useState<'summary' | 'debt' | 'cash' | 'tax' | 'fill'>('summary');
-  const [customers] = useState(() => {
+  const [customers, setCustomers] = useState(() => {
     const raw = localStorage.getItem('mock_customers');
     return raw ? JSON.parse(raw) : seedCustomers;
   });
-  const [invoices] = useState(() => {
+  const [invoices, setInvoices] = useState(() => {
     const raw = localStorage.getItem('mock_invoices');
     return raw ? JSON.parse(raw) : seedInvoices;
   });
-  const [transactions] = useState(() => {
+  const [transactions, setTransactions] = useState(() => {
     const raw = localStorage.getItem('mock_transactions');
     return raw ? JSON.parse(raw) : seedTransactions;
   });
+
+  useEffect(() => {
+    const reload = () => {
+      const lCust = localStorage.getItem('mock_customers');
+      const lInv = localStorage.getItem('mock_invoices');
+      const lTrans = localStorage.getItem('mock_transactions');
+      if (lCust) setCustomers(JSON.parse(lCust));
+      if (lInv) setInvoices(JSON.parse(lInv));
+      if (lTrans) setTransactions(JSON.parse(lTrans));
+    };
+    window.addEventListener('storage', reload);
+    return () => window.removeEventListener('storage', reload);
+  }, []);
+
 
   interface DebtRow {
     name: string;

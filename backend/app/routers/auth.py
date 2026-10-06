@@ -12,17 +12,19 @@ router = APIRouter()
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest) -> TokenResponse:
-    identifier = payload.username
+    identifier = payload.username.strip()
     account = await Account.find_one(
         Or(Account.username == identifier, Account.email == identifier, Account.phone == identifier)
     )
     if account is None or not verify_password(payload.password, account.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sai tên đăng nhập hoặc mật khẩu",
+            detail="Sai thông tin đăng nhập hoặc mật khẩu",
         )
     token = create_access_token(subject=str(account.id))
     return TokenResponse(access_token=token, account=AccountRead.from_doc(account))
+
+
 
 
 @router.get("/me", response_model=AccountRead)

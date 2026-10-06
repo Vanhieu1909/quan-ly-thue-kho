@@ -50,10 +50,26 @@ export async function taiDanhSachYeuCauTrangThai(): Promise<AreaStatusRequest[]>
 
   const result = Array.from(new Set(map.values()));
 
-  // Auto-sync: If an area is LoiChoXacNhan on the map, ensure a ChoDuyet request exists for it
+  // Auto-sync with mock_areas:
   try {
     const areasRaw = localStorage.getItem('mock_areas');
     const areasList = areasRaw ? JSON.parse(areasRaw) : [];
+
+    // 1. If an area in mock_areas is NOT 'LoiChoXacNhan', resolve any pending requests for it
+    for (const a of areasList) {
+      if (a.status !== 'LoiChoXacNhan') {
+        for (const r of result) {
+          if (
+            (r.areaId === a.id || r.areaCode === a.code || (r.areaCode && a.code && r.areaCode.includes(a.code))) &&
+            r.status === 'ChoDuyet'
+          ) {
+            r.status = 'DaDuyet';
+          }
+        }
+      }
+    }
+
+    // 2. If an area in mock_areas IS 'LoiChoXacNhan', ensure a ChoDuyet request exists for it
     for (const a of areasList) {
       if (a.status === 'LoiChoXacNhan') {
         const hasPending = result.some(
@@ -178,22 +194,35 @@ export async function xuLyYeuCauTrangThai(
     const list: AreaStatusRequest[] = raw ? JSON.parse(raw) : seedRequests;
     const req = list.find((r) => r.id === id || r.code === id);
     if (req) {
-      req.status = action === 'approve' ? 'DaDuyet' : 'TuChoi';
-      req.reviewedBy = reviewerName;
-      req.reviewedAt = new Date().toISOString();
-      if (adminNote) req.adminNote = adminNote;
+      const targetAreaId = req.areaId;
+      const targetAreaCode = req.areaCode;
+
+      // Cập nhật tất cả yêu cầu trùng khu vực kho này
+      for (const r of list) {
+        if (
+          r.id === id ||
+          r.code === id ||
+          (r.status === 'ChoDuyet' &&
+            (r.areaId === targetAreaId || r.areaCode === targetAreaCode))
+        ) {
+          r.status = action === 'approve' ? 'DaDuyet' : 'TuChoi';
+          r.reviewedBy = reviewerName;
+          r.reviewedAt = new Date().toISOString();
+          if (adminNote) r.adminNote = adminNote;
+        }
+      }
       localStorage.setItem(KEY, JSON.stringify(list));
 
       const areasRaw = localStorage.getItem('mock_areas');
       const areas: Area[] = areasRaw && JSON.parse(areasRaw).length > 0 ? JSON.parse(areasRaw) : [...seedAreas];
       const idx = areas.findIndex(
         (a: any) =>
-          a.id === req.areaId ||
-          a.code === req.areaCode ||
-          (req.areaCode &&
-            (a.code === req.areaCode.replace('KV-', '').replace(/^A0/, 'A') ||
-              req.areaCode.includes(a.code) ||
-              a.code.includes(req.areaCode)))
+          a.id === targetAreaId ||
+          a.code === targetAreaCode ||
+          (targetAreaCode &&
+            (a.code === targetAreaCode.replace('KV-', '').replace(/^A0/, 'A') ||
+              targetAreaCode.includes(a.code) ||
+              a.code.includes(targetAreaCode)))
       );
       if (idx !== -1) {
         const nextStatus = action === 'approve' ? (req.targetStatus || 'BaoTri') : req.currentStatus;

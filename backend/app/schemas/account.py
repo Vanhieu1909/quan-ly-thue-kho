@@ -42,3 +42,8 @@ class AccountUpdate(CamelModel):
     email: Optional[str] = None
     phone: Optional[str] = None
     password: Optional[str] = None
+
+
+class ResetPasswordRequest(CamelModel):
+    new_password: str
+

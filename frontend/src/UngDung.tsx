@@ -87,12 +87,27 @@ function AdminShell() {
         const raw = localStorage.getItem('thue-kho-rental-requests');
         if (raw) {
           const reqs = JSON.parse(raw);
-          setPendingReqCount(reqs.filter((r: any) => r.status === 'Moi' || r.status === 'DaTiepNhan').length);
+          setPendingReqCount(reqs.filter((r: any) => r.status === 'DaTiepNhan').length);
+
         }
         const areaStatusRaw = localStorage.getItem('thue-kho-area-status-requests');
+        const areasRaw = localStorage.getItem('mock_areas');
+        const areasList = areasRaw ? JSON.parse(areasRaw) : [];
         if (areaStatusRaw) {
           const areaReqs = JSON.parse(areaStatusRaw);
-          setPendingAreaStatusCount(areaReqs.filter((r: any) => r.status === 'ChoDuyet').length);
+          const activePending = areaReqs.filter((r: any) => {
+            if (r.status !== 'ChoDuyet') return false;
+            const area = areasList.find(
+              (a: any) =>
+                a.id === r.areaId ||
+                a.code === r.areaCode ||
+                (r.areaCode && a.code && r.areaCode.includes(a.code))
+            );
+            return area ? area.status === 'LoiChoXacNhan' : false;
+          });
+          setPendingAreaStatusCount(activePending.length);
+        } else {
+          setPendingAreaStatusCount(0);
         }
       } catch {}
     };

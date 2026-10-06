@@ -19,6 +19,7 @@ export const accounts: Account[] = [
     passwordHash: '123456',
     name: 'Hoàng Thu Huyền',
     role: 'admin',
+    phone: '0988888888',
     email: 'admin@thuekho.vn',
     status: 'ACTIVE',
   },
@@ -28,6 +29,7 @@ export const accounts: Account[] = [
     passwordHash: '123456',
     name: 'Lê Văn Hiếu',
     role: 'staff',
+    phone: '0977777777',
     email: 'kho@thuekho.vn',
     status: 'ACTIVE',
   },
@@ -37,6 +39,7 @@ export const accounts: Account[] = [
     passwordHash: '123456',
     name: 'Lê Ngọc Ánh',
     role: 'accountant',
+    phone: '0966666666',
     email: 'ketoan@thuekho.vn',
     status: 'ACTIVE',
   },
@@ -51,6 +54,7 @@ export const accounts: Account[] = [
     status: 'ACTIVE',
   },
 ];
+
 
 export const warehouses: Warehouse[] = [
   { id: 'w1', code: 'KHO-HN', name: 'Kho Trung Tâm Hà Nội', totalAreaM2: 5000, status: 'ACTIVE' },

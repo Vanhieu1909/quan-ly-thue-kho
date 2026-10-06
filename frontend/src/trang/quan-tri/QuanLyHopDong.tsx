@@ -8,7 +8,22 @@ import { NhanTrangThaiHopDong } from '../../thanh-phan/NhanTrangThai';
 import { HopThoai } from '../../thanh-phan/HopThoai';
 import { BanDoKho } from '../../thanh-phan/BanDoKho';
 
+function parseMoneyNumber(val: any): number {
+  if (typeof val === 'number') return val;
+  if (!val) return 0;
+  const digits = String(val).replace(/\D/g, '');
+  return Number(digits) || 0;
+}
+
+function formatMoneyInput(val: any): string {
+  if (val === '' || val === null || val === undefined) return '';
+  const num = parseMoneyNumber(val);
+  if (num === 0 && String(val).replace(/\D/g, '') === '') return '';
+  return new Intl.NumberFormat('vi-VN').format(num);
+}
+
 export function QuanLyHopDong() {
+
   const location = useLocation();
   const [areas, setAreas] = useState<Area[]>(() => {
     const local = localStorage.getItem('mock_areas');
@@ -39,6 +54,8 @@ export function QuanLyHopDong() {
   const [statusFilter, setStatusFilter] = useState<ContractStatus | 'All'>('All');
   const [customerFilter, setCustomerFilter] = useState('All');
   const [open, setOpen] = useState(false);
+  const [showDepositError, setShowDepositError] = useState(false);
+
   const [localCustomers, setLocalCustomers] = useState<Customer[]>(() => {
     const saved = localStorage.getItem('mock_customers');
     if (saved) {
@@ -98,10 +115,12 @@ export function QuanLyHopDong() {
         endDate: state.endDate || current.endDate,
         customerId: matchedId || current.customerId
       }));
+      setShowDepositError(false);
       setOpen(true);
       window.history.replaceState({}, document.title, location.pathname);
     }
   }, [location.pathname, location.state]);
+
 
   const filtered = useMemo(
     () =>
@@ -122,7 +141,7 @@ export function QuanLyHopDong() {
     ? priceTable.find((p) => p.type === commonType)?.unitPrice ?? 0
     : 0;
   const monthlyRent = totalCapacity * unitPrice;
-  const total = monthlyRent + Number(form.serviceFee || 0);
+  const total = monthlyRent + parseMoneyNumber(form.serviceFee);
 
   // Mã HĐ tiếp theo: lấy max số hiện có + 1, tránh trùng khi có HĐ bị hủy/xóa
   const nextContractCode = useMemo(() => {
@@ -135,11 +154,14 @@ export function QuanLyHopDong() {
 
   function save() {
     if (!form.customerId || selectedAreas.length === 0) return;
-    if (!form.deposit || Number(form.deposit) <= 0) {
-      alert('Vui lòng nhập tiền cọc (bắt buộc).');
+    const depositAmt = parseMoneyNumber(form.deposit);
+    if (depositAmt <= 0) {
+      setShowDepositError(true);
       return;
     }
+
     const busyAreas = selectedAreas.filter(a => a.status !== 'Trong');
+
     if (busyAreas.length > 0) {
       alert(`Khu vực ${busyAreas.map(a => a.code).join(', ')} đã được thuê hoặc đang bảo trì. Vui lòng bỏ chọn!`);
       return;
@@ -165,17 +187,17 @@ export function QuanLyHopDong() {
       endDate: form.endDate,
       unitPrice,
       monthlyRent,                           // tổng tiền thuê của tất cả khu
-      serviceFee: Number(form.serviceFee) || 0,
-      deposit: Number(form.deposit) || 0,
+      serviceFee: parseMoneyNumber(form.serviceFee),
+      deposit: depositAmt,
       paymentCycle: form.paymentCycle,
       status: 'ChoHieuLuc',
     };
 
     // ── 1 billing cycle ──
     const bcId = `bc${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const rentAmount = monthlyRent + (Number(form.serviceFee) || 0);
-    const depositAmt = Number(form.deposit) || 0;
+    const rentAmount = monthlyRent + parseMoneyNumber(form.serviceFee);
     const amountBeforeTax = depositAmt + rentAmount;
+
     const vat = Math.round(rentAmount * getVatRate());
     const invoiceTotal = amountBeforeTax + vat;
 
@@ -266,9 +288,10 @@ export function QuanLyHopDong() {
           </select>
         </div>
         <div className="toolbar-right">
-          <button className="btn btn-primary" onClick={() => setOpen(true)}>
+          <button className="btn btn-primary" onClick={() => { setShowDepositError(false); setOpen(true); }}>
             <Plus size={16} /> Tạo hợp đồng
           </button>
+
         </div>
       </div>
 
@@ -364,10 +387,16 @@ export function QuanLyHopDong() {
                 alert('Vui lòng chọn chỗ thuê trên bản đồ!');
                 return;
               }
+              if (parseMoneyNumber(form.deposit) <= 0) {
+                setShowDepositError(true);
+                return;
+              }
+
               save();
             }}>
               Lưu
             </button>
+
           </>
         }
       >
@@ -448,9 +477,27 @@ export function QuanLyHopDong() {
           </div>
           <div className="field">
             <label>Tiền cọc <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <input type="number" value={form.deposit} onChange={(e) => setForm({ ...form, deposit: e.target.value })} placeholder="Bắt buộc nhập tiền cọc" style={!form.deposit || Number(form.deposit) <= 0 ? { borderColor: 'var(--danger)' } : {}} />
-            {(!form.deposit || Number(form.deposit) <= 0) && <small style={{ color: 'var(--danger)' }}>Bắt buộc nhập tiền cọc</small>}
+            <input
+              type="text"
+              value={form.deposit}
+              onChange={(e) => {
+                const formatted = formatMoneyInput(e.target.value);
+                setForm({ ...form, deposit: formatted });
+                if (parseMoneyNumber(formatted) > 0) {
+                  setShowDepositError(false);
+                }
+              }}
+              placeholder="Nhập số tiền cọc (VD: 50.000)"
+              style={showDepositError && parseMoneyNumber(form.deposit) <= 0 ? { borderColor: 'var(--danger)' } : {}}
+            />
+            {showDepositError && parseMoneyNumber(form.deposit) <= 0 && (
+              <small style={{ color: 'var(--danger)' }}>Vui lòng nhập tiền cọc</small>
+            )}
           </div>
+
+
+
+
         </div>
         <div className="summary-box">
           <div className="row">
